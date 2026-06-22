@@ -1,0 +1,50 @@
+{
+  "name": "axiom",
+  "version": "0.1.0",
+  "private": true,
+  "description": "AXIOM — a distributed exchange core guaranteeing exactly-once trade execution on Aurora DSQL.",
+  "type": "module",
+  "workspaces": [
+    "packages/*",
+    "apps/*"
+  ],
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "db:up": "docker compose up -d --wait",
+    "db:down": "docker compose down -v",
+    "db:migrate": "tsx packages/database/src/migrate.ts",
+    "dynamo:setup": "tsx packages/dynamodb-client/src/setup.ts",
+    "provision:aws": "tsx scripts/provision-aws.ts",
+    "db:migrate:dsql": "tsx scripts/migrate-dsql.ts",
+    "aws:proof": "tsx scripts/aws-proof.ts",
+    "diagram": "tsx scripts/render-diagram.ts",
+    "test:dsql:connect": "tsx scripts/test-dsql-connection.ts",
+    "test:dsql": "tsx scripts/test-dsql.ts",
+    "api:start": "tsx packages/intake-api/src/index.ts",
+    "api:dev": "tsx watch packages/intake-api/src/index.ts",
+    "seed": "tsx scripts/seed-demo-data.ts",
+    "loadtest": "tsx scripts/load-test-intake.ts",
+    "verify:knight": "tsx scripts/verify-knight-capital.ts",
+    "test": "vitest run",
+    "test:concurrency": "vitest run tests/concurrency",
+    "typecheck": "tsc -p tsconfig.base.json --noEmit"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.5",
+    "@types/pg": "^8.11.10",
+    "embedded-postgres": "^18.4.0-beta.17",
+    "sharp": "^0.35.2",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.3",
+    "vitest": "^2.1.8"
+  },
+  "dependencies": {
+    "@aws-sdk/client-dsql": "^3.1073.0",
+    "@aws-sdk/dsql-signer": "^3.1073.0",
+    "dotenv": "^16.4.7",
+    "pg": "^8.13.1",
+    "zod": "^3.24.1"
+  }
+}

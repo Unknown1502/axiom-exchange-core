@@ -1,0 +1,13 @@
+{
+  "name": "@axiom/database",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "main": "src/index.ts",
+  "types": "src/index.ts",
+  "dependencies": {
+    "@axiom/shared-types": "0.1.0",
+    "dotenv": "^16.4.7",
+    "pg": "^8.13.1"
+  }
+}

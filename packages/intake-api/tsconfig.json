@@ -1,0 +1,5 @@
+// Compiler options are inherited from ../../tsconfig.base.json
+{
+  "extends": "../../tsconfig.base.json",
+  "include": ["src/**/*.ts"]
+}

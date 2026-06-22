@@ -1,0 +1,26 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+*.tsbuildinfo
+.next/
+out/
+.turbo/
+next-env.d.ts
+
+# Secrets — never commit real credentials
+.env
+.env.local
+.env.*.local
+
+# Test / coverage
+coverage/
+
+# Vercel
+.vercel/
+
+# Logs / OS
+*.log
+.DS_Store
+Thumbs.db

@@ -1,0 +1,36 @@
+# Local PostgreSQL used to develop and PROVE the matching engine's correctness.
+#
+# Why Postgres 16 locally instead of Aurora DSQL: Aurora DSQL speaks the Postgres
+# wire protocol and its transactions run at REPEATABLE READ with optimistic
+# concurrency control (OCC), surfacing conflicts as SQLSTATE 40001. Stock
+# Postgres REPEATABLE READ raises the identical 40001 ("could not serialize
+# access due to concurrent update") on write-write conflicts, so the OCC + retry
+# logic and the concurrency proof behave the same here as on real Aurora DSQL.
+# See docs/architecture/concurrency-model.md.
+services:
+  postgres:
+    image: postgres:16
+    container_name: axiom-postgres
+    environment:
+      POSTGRES_USER: axiom
+      POSTGRES_PASSWORD: axiom_local_pw
+      POSTGRES_DB: axiom
+    # Published on 55432 (not 5432) to avoid colliding with a native PostgreSQL
+    # install that may already own host port 5432.
+    ports:
+      - "55432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U axiom -d axiom"]
+      interval: 2s
+      timeout: 3s
+      retries: 30
+
+  # Local DynamoDB for the order-event firehose during development/demo.
+  # In-memory + shared-db: a single real DynamoDB-compatible store on :8000.
+  # Production uses the real AWS table created by scripts/provision-dynamodb.sh.
+  dynamodb-local:
+    image: amazon/dynamodb-local:latest
+    container_name: axiom-dynamodb
+    command: "-jar DynamoDBLocal.jar -inMemory -sharedDb"
+    ports:
+      - "8000:8000"

@@ -1,0 +1,30 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  @apply bg-base text-gray-200 font-sans antialiased;
+}
+
+/* Tabular figures so price/qty columns align like a real trading terminal. */
+.tabular {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Slim dark scrollbars to match the terminal aesthetic. */
+*::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+*::-webkit-scrollbar-track {
+  background: #0a0a0f;
+}
+*::-webkit-scrollbar-thumb {
+  background: #23232f;
+  border-radius: 4px;
+}
