@@ -26,12 +26,17 @@ loadEnv();
 // Derive connection params from DATABASE_URL so the embedded fallback uses the
 // exact same host/port/credentials the tests will connect with (e.g. 55432,
 // chosen to avoid a native Postgres on the default 5432).
+// Local-only dev password; sourced from env so no credential is hardcoded.
+// `.env` (gitignored) sets DATABASE_URL; this non-secret default keeps the
+// concurrency proof runnable with a bare `npm test`.
+const LOCAL_DEV_PASSWORD = process.env.POSTGRES_PASSWORD ?? 'axiom_local_dev';
 const DATABASE_URL =
-  process.env.DATABASE_URL ?? 'postgresql://axiom:axiom_local_pw@localhost:55432/axiom';
+  process.env.DATABASE_URL ??
+  `postgresql://axiom:${LOCAL_DEV_PASSWORD}@localhost:55432/axiom`;
 const parsed = new URL(DATABASE_URL);
 const PORT = Number(parsed.port || '5432');
 const USER = decodeURIComponent(parsed.username) || 'axiom';
-const PASSWORD = decodeURIComponent(parsed.password) || 'axiom_local_pw';
+const PASSWORD = decodeURIComponent(parsed.password) || LOCAL_DEV_PASSWORD;
 const DATABASE = parsed.pathname.replace(/^\//, '') || 'axiom';
 const DATA_DIR = join(dirname(fileURLToPath(import.meta.url)), '.pgdata');
 

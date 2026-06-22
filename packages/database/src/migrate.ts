@@ -21,12 +21,18 @@ import { createPool } from './pool.js';
 
 const MIGRATIONS_DIR = join(dirname(fileURLToPath(import.meta.url)), '..', 'migrations');
 
-/** True when migrating against Aurora DSQL (vs. local/stock Postgres). */
+/**
+ * True only when this migration run explicitly targets Aurora DSQL.
+ *
+ * Gated on the explicit DATABASE_TARGET=dsql opt-in, NOT on the mere presence
+ * of DSQL_CLUSTER_ENDPOINT: that variable is set whenever the app needs to
+ * *connect* to DSQL, but local development and the concurrency test suite still
+ * run their migrations against stock Postgres (which rejects CREATE INDEX
+ * ASYNC). The DSQL migration scripts (scripts/migrate-dsql.ts) set
+ * DATABASE_TARGET=dsql to switch on the ASYNC rewrite.
+ */
 function isDsqlTarget(): boolean {
-  return (
-    process.env.DATABASE_TARGET === 'dsql' ||
-    typeof process.env.DSQL_CLUSTER_ENDPOINT === 'string'
-  );
+  return process.env.DATABASE_TARGET === 'dsql';
 }
 
 /** Split a migration file into individual executable statements. */

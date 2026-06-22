@@ -13,7 +13,9 @@ services:
     container_name: axiom-postgres
     environment:
       POSTGRES_USER: axiom
-      POSTGRES_PASSWORD: axiom_local_pw
+      # Local-only dev password. Override via POSTGRES_PASSWORD in your .env;
+      # falls back to a non-secret default so `npm run db:up` works zero-config.
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-axiom_local_dev}
       POSTGRES_DB: axiom
     # Published on 55432 (not 5432) to avoid colliding with a native PostgreSQL
     # install that may already own host port 5432.
