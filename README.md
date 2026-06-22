@@ -41,21 +41,7 @@ properties directly:
 
 ## Architecture
 
-```
-[Order Entry UI]  →  [Next.js route handlers]  →  [Intake API (Fastify)]
- Next.js dashboard      same-origin proxy          region tag · idempotency
-                                                          │            │
-                                                          ▼            ▼
-                                          [Aurora DSQL]      [DynamoDB: order_events]
-                                          matching tx in     (firehose / audit log,
-                                          ONE OCC retry      fire-and-forget)
-                                                 │
-                                                 ▼
-                                    [Aurora DSQL: order_book + trades]
-                                                 │
-                                                 ▼
-                        [Live dashboard: order book · trade tape · ledger]
-```
+![AXIOM system architecture](docs/architecture-diagram.png)
 
 | Store / layer | Role |
 |---------------|------|
