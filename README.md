@@ -2,12 +2,19 @@
 
 **A distributed exchange core that guarantees exactly-once trade execution and one strongly consistent ledger of truth — built on Amazon Aurora DSQL.**
 
-AXIOM is an order-matching and settlement engine for emerging trading venues
-(crypto exchanges, prediction markets, alternative trading systems) that need
-the correctness guarantees of legacy proprietary matching engines without the
-enterprise price tag. Its entire thesis is **correctness under concurrency**:
-one match, one settlement, no double-execution — even under a burst of duplicate
-or retried orders, the exact failure that cost Knight Capital ~$440M in 2012.
+AXIOM is a self-contained **exchange core** — the matching engine and settlement
+ledger that an emerging trading venue (a crypto exchange, prediction market, or
+alternative trading system) runs *as its own* core, instead of building one or
+licensing a legacy proprietary engine. AXIOM is the destination an order book
+lives in; it is not a connector to Coinbase/Binance/Polymarket, and it is not a
+smart order router. Venues integrate *into* it (today via REST; a FIX gateway is
+the natural production front door).
+
+Its entire thesis is **correctness under concurrency**: one match, one
+settlement, no double-execution — even under a burst of duplicate or retried
+orders, the exact failure that cost Knight Capital ~$440M in 2012 — and **one
+strongly consistent ledger of truth even when that book is written from multiple
+AWS Regions at once.**
 
 ---
 
@@ -50,11 +57,66 @@ properties directly:
 | **Next.js on Vercel** | Dashboard + same-origin API proxy (`/api/orders`, `/api/book`, `/api/trades`, `/api/events`). |
 | **Fastify intake API** | Region tagging, idempotency handling, matching, and read projections for the dashboard. |
 
-Regions (`us` / `eu` / `apac`) are simulated via a labeled `X-Region` request
-header, not a live multi-region deployment. The full data-flow diagram is in
+AXIOM runs in two modes. **Single-Region** (default; local Postgres or one DSQL
+cluster) is what the test suite and quickstart use. **Multi-Region** (set
+`MULTIREGION=1`) connects to a real multi-Region Aurora DSQL cluster — two peered
+Regional clusters (`us-east-1` + `us-east-2`) plus a witness Region (`us-west-2`)
+— and routes a write by its `X-Region` tag to that Region's endpoint. Both
+endpoints are **one logical, strongly-consistent database** (synchronous,
+zero replication lag, RPO 0), so a trade committed via one Region is immediately
+durable on the other. See [Multi-Region](#multi-region-one-ledger-across-regions)
+below.
+
+> The demo labels the `us-east-2` peer as "eu" for narrative; it is a real,
+> separate AWS Region but is not literally in Europe. AXIOM keeps the habit of
+> being explicit about what is real vs. labeled.
+
+The full data-flow diagram is in
 [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md); rendered images live at
 [docs/architecture-diagram.svg](docs/architecture-diagram.svg) /
 [`.png`](docs/architecture-diagram.png).
+
+---
+
+## Multi-Region — one ledger across Regions
+
+This is the answer to *"why is this hard on plain Postgres?"* Single-Region
+Postgres can do exactly-once matching. What it cannot do is be **multi-Region
+active-active with synchronous strong consistency and zero RPO** — its multi-
+Region story is a primary plus async replicas, with a lossy failover and
+post-partition reconciliation. Aurora DSQL provides active-active strong
+consistency across Regions, and AXIOM exploits exactly that.
+
+**Topology** (created by `provision:aws:multiregion`):
+
+| Component | Region | Role |
+|-----------|--------|------|
+| Cluster 1 (endpoint) | `us-east-1` | Writable Regional endpoint, labeled `us` |
+| Cluster 2 (endpoint) | `us-east-2` | Writable Regional endpoint, labeled `eu` |
+| Witness (no endpoint) | `us-west-2` | Commit-quorum participant; no client traffic |
+
+The matching engine is **unchanged** — a cross-Region write-write conflict
+surfaces as the same `SQLSTATE 40001` and retries through `withOccRetry` exactly
+as a same-Region conflict does. The only new code is the per-Region connection
+layer ([packages/database/src/multiregion.ts](packages/database/src/multiregion.ts))
+that opens one IAM-authenticated pool per endpoint and routes by region.
+
+**Run it:**
+
+```bash
+npm run provision:aws:multiregion      # create peered clusters + witness (billable)
+# copy the printed DSQL_ENDPOINT_* / DSQL_REGION_* / DSQL_IDENTIFIER_* into .env
+npm run db:migrate:dsql:multiregion    # migrate once; verify visible from both
+MULTIREGION=1 npm run proof:convergence   # write via US + EU, prove one ledger
+MULTIREGION=1 npm run proof:failover      # drop US endpoint, prove EU has the truth
+npm run teardown:aws:multiregion       # delete both clusters when done
+```
+
+> **Honest scope of the failover proof.** It does not delete an AWS Region; it
+> simulates a Region becoming unreachable *from the client* by closing the US
+> pool, then proves the surviving EU endpoint already holds the committed trade
+> (RPO 0) and stays writable. The durability guarantee is real (witness quorum);
+> the client-side outage is what is simulated.
 
 ---
 
@@ -135,11 +197,20 @@ provisioning scripts — is documented in
 
 ## Project status
 
-All layers are built and verified end-to-end: the matching engine + concurrency
-proof (the load-bearing deliverable), the Fastify intake API, the DynamoDB
-firehose, and the Next.js dashboard with Knight Capital Mode. A live Aurora DSQL
-cluster and `order_events` DynamoDB table are provisioned in `us-east-1`
-(`npm run aws:proof` prints their live status).
+**Verified end-to-end (single-Region):** the matching engine + concurrency proof
+(the load-bearing deliverable — `npm test` passes the 50-conflicting-order and
+50-duplicate-submission proofs), the Fastify intake API, the DynamoDB firehose,
+and the Next.js dashboard with Knight Capital Mode. A live Aurora DSQL cluster and
+`order_events` DynamoDB table are provisioned in `us-east-1` (`npm run aws:proof`
+prints their live status).
+
+**Built, run-to-verify (multi-Region):** the two-Region active-active path —
+provisioning, the per-Region connection layer, and the convergence + failover
+proofs — is implemented and type-checks against the same engine, but the
+`proof:convergence` / `proof:failover` numbers are only real once you provision a
+live multi-Region cluster and run them (see [Multi-Region](#multi-region-one-ledger-across-regions)).
+This README deliberately states the capability, not measured results, until those
+scripts have run against live infrastructure.
 
 See [docs/architecture/](docs/architecture/) for the design rationale and
 [docs/SUBMISSION.md](docs/SUBMISSION.md) for the submission summary.

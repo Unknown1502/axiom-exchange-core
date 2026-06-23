@@ -8,12 +8,32 @@ body {
 }
 
 body {
-  @apply bg-base text-gray-200 font-sans antialiased;
+  @apply bg-base text-ink font-sans antialiased;
+  /* Aurora wash behind everything, matching the explainer's hero gradient. */
+  background:
+    radial-gradient(130% 100% at 50% -10%, #10121f, #070810 62%);
+  background-attachment: fixed;
+}
+
+/* Gold text selection — the brand accent. */
+::selection {
+  background: #e6c892;
+  color: #171205;
 }
 
 /* Tabular figures so price/qty columns align like a real trading terminal. */
 .tabular {
   font-variant-numeric: tabular-nums;
+}
+
+/* Glassmorphism panel surface used across the dashboard. */
+.glass {
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.02));
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  box-shadow:
+    0 24px 60px -24px rgba(0, 0, 0, 0.6),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
 }
 
 /* Slim dark scrollbars to match the terminal aesthetic. */
@@ -22,9 +42,9 @@ body {
   height: 8px;
 }
 *::-webkit-scrollbar-track {
-  background: #0a0a0f;
+  background: transparent;
 }
 *::-webkit-scrollbar-thumb {
-  background: #23232f;
+  background: rgba(255, 255, 255, 0.12);
   border-radius: 4px;
 }

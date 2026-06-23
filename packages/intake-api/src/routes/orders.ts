@@ -6,8 +6,8 @@
 import { randomUUID } from 'node:crypto';
 import type { FastifyInstance } from 'fastify';
 import { z } from 'zod';
-import type { Pool } from '@axiom/database';
 import { submitOrder } from '@axiom/matching-engine';
+import type { PoolResolver } from '../pools.js';
 import {
   writeOrderEvent,
   writeTradeEvent,
@@ -32,7 +32,7 @@ function fireAndForget(app: FastifyInstance, work: Promise<unknown>): void {
   void work.catch((err: unknown) => app.log.error({ err }, 'firehose write failed'));
 }
 
-export function registerOrderRoutes(app: FastifyInstance, pool: Pool): void {
+export function registerOrderRoutes(app: FastifyInstance, pools: PoolResolver): void {
   app.post('/orders', async (request, reply) => {
     const parsed = OrderBodySchema.safeParse(request.body);
     if (!parsed.success) {
@@ -43,6 +43,11 @@ export function registerOrderRoutes(app: FastifyInstance, pool: Pool): void {
     const awsRegion = awsRegionFor(region);
     const idempotencyKey = resolveIdempotencyKey(request.headers['idempotency-key']);
     const rawPayload = JSON.stringify(body);
+
+    // The write goes to the endpoint for the order's region. In multi-Region
+    // mode this is a real cross-Region active-active write into one logical,
+    // strongly-consistent ledger; in single-Region mode it's the only pool.
+    const pool = pools.writePool(region);
 
     let result;
     try {
@@ -125,7 +130,7 @@ export function registerOrderRoutes(app: FastifyInstance, pool: Pool): void {
     if (!params.success) {
       return reply.code(400).send({ error: 'INVALID_ORDER_ID' });
     }
-    const order = await getOrderById(pool, params.data.id);
+    const order = await getOrderById(pools.readPool(), params.data.id);
     if (!order) {
       return reply.code(404).send({ error: 'NOT_FOUND' });
     }

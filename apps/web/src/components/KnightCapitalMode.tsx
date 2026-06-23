@@ -48,8 +48,8 @@ export function KnightCapitalMode({
   const blocked = statuses.filter((s) => s === 409).length;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4">
-      <div className="animate-alarmBorder flex max-h-[92vh] w-full max-w-5xl flex-col overflow-hidden rounded-xl border-2 bg-panel">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm">
+      <div className="animate-alarmBorder flex max-h-[92vh] w-full max-w-5xl flex-col overflow-hidden rounded-2xl border-2 bg-[#0c0d18]">
         <header className="flex items-center justify-between border-b border-edge bg-sell-dim px-5 py-3">
           <div>
             <h2 className="text-lg font-bold text-alarm">🚨 KNIGHT CAPITAL MODE</h2>
@@ -153,7 +153,7 @@ export function KnightCapitalMode({
             <button
               onClick={fire}
               disabled={phase === 'firing'}
-              className="animate-pulse rounded bg-alarm px-6 py-2.5 text-sm font-bold text-white hover:brightness-110 disabled:animate-none disabled:opacity-50"
+              className="animate-pulse rounded-lg bg-alarm px-6 py-2.5 font-mono text-sm font-bold uppercase tracking-wider text-base hover:brightness-110 disabled:animate-none disabled:opacity-50"
             >
               {phase === 'firing' ? 'FIRING…' : `⚡ FIRE ${BURST} DUPLICATE ORDERS`}
             </button>

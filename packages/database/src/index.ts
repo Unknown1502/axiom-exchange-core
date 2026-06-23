@@ -5,6 +5,12 @@
 
 export { createPool } from './pool.js';
 export type { Pool, PoolClient, PoolOptions } from './pool.js';
+export { createMultiRegionPools } from './multiregion.js';
+export type {
+  MultiRegionPools,
+  RegionEndpoint,
+  RegionalClusterConfig,
+} from './multiregion.js';
 export {
   withOccRetry,
   isRetryableConflict,

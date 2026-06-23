@@ -8,23 +8,31 @@
 
 import cors from '@fastify/cors';
 import Fastify from 'fastify';
-import { createPool } from '@axiom/database';
 import { registerBookRoutes } from './routes/book.js';
 import { registerEventRoutes } from './routes/events.js';
 import { registerOrderRoutes } from './routes/orders.js';
 import { registerTradeRoutes } from './routes/trades.js';
+import { createPoolResolver } from './pools.js';
 
 async function main(): Promise<void> {
   const app = Fastify({ logger: true });
-  const pool = createPool({ max: 30 });
+  const pools = createPoolResolver();
+  app.log.info(
+    { multiRegion: pools.multiRegion },
+    pools.multiRegion ? 'multi-Region routing ENABLED' : 'single-Region pool',
+  );
 
   await app.register(cors, { origin: true, exposedHeaders: ['Content-Type'] });
 
-  app.get('/health', async () => ({ status: 'ok', service: 'axiom-intake-api' }));
+  app.get('/health', async () => ({
+    status: 'ok',
+    service: 'axiom-intake-api',
+    multiRegion: pools.multiRegion,
+  }));
 
-  registerOrderRoutes(app, pool);
-  registerBookRoutes(app, pool);
-  registerTradeRoutes(app, pool);
+  registerOrderRoutes(app, pools);
+  registerBookRoutes(app, pools.readPool());
+  registerTradeRoutes(app, pools.readPool());
   registerEventRoutes(app);
 
   const port = Number(process.env.INTAKE_PORT ?? process.env.PORT ?? 3001);
@@ -33,7 +41,7 @@ async function main(): Promise<void> {
   const shutdown = async (signal: string): Promise<void> => {
     app.log.info({ signal }, 'shutting down');
     await app.close();
-    await pool.end();
+    await pools.closeAll();
     process.exit(0);
   };
   process.on('SIGINT', () => void shutdown('SIGINT'));
