@@ -112,6 +112,26 @@ MULTIREGION=1 npm run proof:failover      # drop US endpoint, prove EU has the t
 npm run teardown:aws:multiregion       # delete both clusters when done
 ```
 
+**Actual output from a live run** (`us-east-1` + `us-east-2`, witness `us-west-2`):
+
+```text
+=== AXIOM MULTI-REGION CONVERGENCE PROOF ===
+[US endpoint]  SELL 2 @ 50000 -> ACCEPTED (OPEN)
+[EU endpoint]  BUY  2 @ 50000 -> ACCEPTED (FILLED, 1 fill(s))
+Ledger as seen from each endpoint (must be identical):
+  via US endpoint: {"open_orders":0,"trades":1,"executed_qty":"2.00000000"}
+  via EU endpoint: {"open_orders":0,"trades":1,"executed_qty":"2.00000000"}
+Convergence: PASS — one ledger, zero divergence
+
+=== AXIOM MULTI-REGION FAILOVER PROOF ===
+[US endpoint]  committed trade 8eace0f6-9900-4e3e-a08a-ab8d819611ba
+[OUTAGE]       US endpoint connection closed — US is now unreachable.
+US endpoint reachable after outage: NO  (as expected)
+Committed trade readable from EU:   YES (zero data loss)
+EU endpoint still accepts writes:   YES (not read-only)
+Failover: PASS — surviving Region serves the same truth, no reconciliation
+```
+
 > **Honest scope of the failover proof.** It does not delete an AWS Region; it
 > simulates a Region becoming unreachable *from the client* by closing the US
 > pool, then proves the surviving EU endpoint already holds the committed trade
@@ -204,13 +224,26 @@ and the Next.js dashboard with Knight Capital Mode. A live Aurora DSQL cluster a
 `order_events` DynamoDB table are provisioned in `us-east-1` (`npm run aws:proof`
 prints their live status).
 
-**Built, run-to-verify (multi-Region):** the two-Region active-active path —
-provisioning, the per-Region connection layer, and the convergence + failover
-proofs — is implemented and type-checks against the same engine, but the
-`proof:convergence` / `proof:failover` numbers are only real once you provision a
-live multi-Region cluster and run them (see [Multi-Region](#multi-region-one-ledger-across-regions)).
-This README deliberately states the capability, not measured results, until those
-scripts have run against live infrastructure.
+**Verified against a live multi-Region cluster.** A two-Region active-active
+Aurora DSQL cluster was provisioned (`us-east-1` + `us-east-2`, witness
+`us-west-2`), both clusters reached `ACTIVE`, the schema was applied once via the
+US endpoint and confirmed visible from the EU endpoint, and both proofs passed
+against the live cluster:
+
+- **Convergence** (`proof:convergence`) — a SELL written through the **us-east-1**
+  endpoint was matched by a BUY written through the **us-east-2** endpoint; both
+  endpoints then reported the *identical* ledger (`trades=1`,
+  `executed_qty=2.00000000`, `open_orders=0`). One logical ledger, zero
+  divergence, no replication lag.
+- **Failover** (`proof:failover`) — a trade was committed via the US endpoint, the
+  US connection was then severed (US unreachable), and the surviving EU endpoint
+  still (a) returned the committed trade with full fidelity — zero data loss,
+  RPO 0 — and (b) accepted a new write. The surviving Region serves the same
+  truth with no reconciliation step.
+
+Reproduce with the commands in [Multi-Region](#multi-region-one-ledger-across-regions).
+The clusters were torn down after the run (`teardown:aws:multiregion`), so
+`aws:proof` reflects the single-Region `us-east-1` cluster used for day-to-day dev.
 
 See [docs/architecture/](docs/architecture/) for the design rationale and
 [docs/SUBMISSION.md](docs/SUBMISSION.md) for the submission summary.

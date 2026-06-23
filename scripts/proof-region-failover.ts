@@ -71,6 +71,13 @@ async function main(): Promise<void> {
   const tradeId = buy.fills[0]!.trade_id;
   console.log(`[US endpoint]  committed trade ${tradeId}`);
 
+  // Warm up the EU pool BEFORE the outage so its connection is established
+  // independently of US — otherwise EU's first lazy connect can race the US
+  // teardown. This does not weaken the proof: the trade was committed via US and
+  // we have not yet read it from EU.
+  await euPool.query('SELECT 1');
+  console.log('[EU endpoint]  connection established (independent of US).');
+
   // 2. "Region outage" — drop the US pool. From here, US is gone for this client.
   await usPool.end();
   console.log('[OUTAGE]       US endpoint connection closed — US is now unreachable.\n');
