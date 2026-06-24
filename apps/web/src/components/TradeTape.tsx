@@ -26,7 +26,7 @@ export function TradeTape({ trades }: { trades: TradeView[] }) {
             const cur = Number(t.price);
             const older = i + 1 < trades.length ? Number(trades[i + 1].price) : cur;
             const dir = cur > older ? 'up' : cur < older ? 'down' : 'flat';
-            const color = dir === 'up' ? 'text-buy' : dir === 'down' ? 'text-sell' : 'text-gray-300';
+            const color = dir === 'up' ? 'text-buy' : dir === 'down' ? 'text-sell' : 'text-ink-soft';
             const arrow = dir === 'up' ? '▲' : dir === 'down' ? '▼' : '·';
             const isNew = !seenRef.current.has(t.trade_id);
             return (
@@ -40,7 +40,7 @@ export function TradeTape({ trades }: { trades: TradeView[] }) {
                 <span className={`text-right font-medium ${color}`}>
                   {arrow} {fmtPrice(t.price)}
                 </span>
-                <span className="text-right text-gray-300">{fmtQty(t.quantity)}</span>
+                <span className="text-right text-ink">{fmtQty(t.quantity)}</span>
               </li>
             );
           })}

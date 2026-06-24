@@ -9,16 +9,16 @@ body {
 
 body {
   @apply bg-base text-ink font-sans antialiased;
-  /* Aurora wash behind everything, matching the explainer's hero gradient. */
+  /* Warm paper with a faint editorial vignette — light, not flat white. */
   background:
-    radial-gradient(130% 100% at 50% -10%, #10121f, #070810 62%);
+    radial-gradient(120% 90% at 50% -20%, #FBF8F1 0%, #F6F3EC 55%, #F0EBE0 100%);
   background-attachment: fixed;
 }
 
-/* Gold text selection — the brand accent. */
+/* Amber text selection — the brand accent on light. */
 ::selection {
-  background: #e6c892;
-  color: #171205;
+  background: #B8852A;
+  color: #FBF8F1;
 }
 
 /* Tabular figures so price/qty columns align like a real trading terminal. */
@@ -26,17 +26,38 @@ body {
   font-variant-numeric: tabular-nums;
 }
 
-/* Glassmorphism panel surface used across the dashboard. */
-.glass {
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.02));
-  backdrop-filter: blur(18px);
-  -webkit-backdrop-filter: blur(18px);
-  box-shadow:
-    0 24px 60px -24px rgba(0, 0, 0, 0.6),
-    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+/* Editorial serif display — for the big numbers and headline moments. */
+.display {
+  font-family: 'Newsreader', ui-serif, Georgia, serif;
+  font-weight: 500;
+  letter-spacing: -0.01em;
 }
 
-/* Slim dark scrollbars to match the terminal aesthetic. */
+/*
+ * Card surface. Components share `.glass` (legacy name) — now a clean light
+ * card: white paper, a hairline warm border, and a soft lifted shadow. The
+ * single source of the "designed product" feel.
+ */
+.glass {
+  background: #FFFFFF;
+  border-color: #E4DDCF;
+  box-shadow:
+    0 1px 0 rgba(26, 23, 18, 0.02),
+    0 12px 28px -18px rgba(26, 23, 18, 0.18),
+    0 2px 6px -4px rgba(26, 23, 18, 0.10);
+}
+
+/* A flat inset well (order book rows behind depth bars, stat strips). */
+.well {
+  background: #FBF8F1;
+}
+
+/* Hairline grid feel — a thin top accent line for the active/primary card. */
+.accent-rule {
+  border-top: 2px solid #B8852A;
+}
+
+/* Slim warm scrollbars to match the paper aesthetic. */
 *::-webkit-scrollbar {
   width: 8px;
   height: 8px;
@@ -45,6 +66,9 @@ body {
   background: transparent;
 }
 *::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.12);
+  background: rgba(26, 23, 18, 0.14);
   border-radius: 4px;
+}
+*::-webkit-scrollbar-thumb:hover {
+  background: rgba(26, 23, 18, 0.24);
 }

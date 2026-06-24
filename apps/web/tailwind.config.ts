@@ -5,25 +5,27 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        // AXIOM "Exactly-Once" palette — aurora navy + gold, matching the
-        // cinematic explainer (AXIOM Exactly-Once.dc.html).
-        base: '#070810',
-        panel: 'rgba(255,255,255,0.04)',
-        'panel-raised': 'rgba(255,255,255,0.06)',
-        edge: 'rgba(255,255,255,0.10)',
-        muted: '#6E7184',
-        // Buy/sell tuned to the explainer's green/rose so the terminal and the
-        // story speak the same color language.
-        buy: '#4FD89E',
-        'buy-dim': 'rgba(79,216,158,0.12)',
-        sell: '#F86C84',
-        'sell-dim': 'rgba(248,108,132,0.12)',
-        // Gold is the brand accent (the diamond ledger core).
-        accent: '#E6C892',
-        'accent-deep': '#C9A867',
-        warn: '#E6C892',
-        alarm: '#F86C84',
-        ink: '#F2EFE8',
+        // AXIOM "Exactly-Once" palette — Bloomberg-light editorial. Warm paper,
+        // near-black ink, a deep amber accent, and buy/sell tuned to read
+        // confidently on a LIGHT surface (neon greens vanish on white).
+        base: '#F6F3EC', // warm paper — the page
+        panel: '#FFFFFF', // card surface
+        'panel-raised': '#F1ECE1', // inset / hover wells, header strips
+        edge: '#E4DDCF', // hairline rules between regions
+        'edge-strong': '#CFC6B4', // stronger dividers / card borders
+        muted: '#8A8170', // secondary ink (warm gray)
+        // Buy/sell: deep, saturated, legible on paper.
+        buy: '#0E8F5E', // forest green
+        'buy-dim': 'rgba(14,143,94,0.10)',
+        sell: '#C8324B', // crimson
+        'sell-dim': 'rgba(200,50,75,0.10)',
+        // Amber-gold brand accent (the diamond ledger core), darkened for light bg.
+        accent: '#B8852A',
+        'accent-deep': '#8A6116',
+        warn: '#B8852A',
+        alarm: '#C8324B',
+        ink: '#1A1712', // near-black warm ink — primary text
+        'ink-soft': '#4A4337', // softened ink for body copy
       },
       fontFamily: {
         mono: ['JetBrains Mono', 'ui-monospace', 'SFMono-Regular', 'Menlo', 'Consolas', 'monospace'],
@@ -32,7 +34,7 @@ const config: Config = {
       },
       keyframes: {
         pulseRow: {
-          '0%': { backgroundColor: 'rgba(230,200,146,0.22)' },
+          '0%': { backgroundColor: 'rgba(184,133,42,0.22)' },
           '100%': { backgroundColor: 'transparent' },
         },
         alarmBorder: {

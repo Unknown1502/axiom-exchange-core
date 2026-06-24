@@ -43,8 +43,8 @@ export function LedgerView({
               {trades.map((t) => (
                 <tr key={t.trade_id} className="border-b border-edge/50">
                   <td className="px-3 py-1 text-muted">{shortId(t.trade_id)}</td>
-                  <td className="px-3 py-1 text-right text-gray-200">{fmtPrice(t.price)}</td>
-                  <td className="px-3 py-1 text-right text-gray-200">{fmtQty(t.quantity)}</td>
+                  <td className="px-3 py-1 text-right text-ink">{fmtPrice(t.price)}</td>
+                  <td className="px-3 py-1 text-right text-ink">{fmtQty(t.quantity)}</td>
                   <td className="px-3 py-1 text-right text-muted">{fmtTime(t.executed_at)}</td>
                 </tr>
               ))}
@@ -76,7 +76,7 @@ export function LedgerView({
                   {e.event_type}
                 </span>
                 <span className="tabular text-muted">{e.side}</span>
-                <span className="tabular text-gray-300">{fmtPrice(e.price)}</span>
+                <span className="tabular text-ink">{fmtPrice(e.price)}</span>
                 <RegionBadge region={e.region_origin} />
                 <span className="tabular text-muted">{fmtTime(e.created_at)}</span>
               </li>

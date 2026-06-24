@@ -50,39 +50,37 @@ export function Dashboard() {
   const bestBid = book?.bids[0]?.price;
   const bestAsk = book?.asks[0]?.price;
 
+  const lastTrade = trades[0]?.price;
+
   return (
-    <div className="mx-auto flex min-h-screen max-w-[1400px] flex-col gap-3 p-3">
-      {/* Header */}
-      <header className="glass flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-edge px-5 py-3.5">
-        <div className="flex items-center gap-3">
-          <span
-            className="h-2.5 w-2.5 rotate-45 bg-gradient-to-br from-accent to-accent-deep"
-            style={{ boxShadow: '0 0 14px rgba(230,200,146,.6)' }}
-          />
-          <span className="text-lg font-bold tracking-[0.18em] text-ink">AXIOM</span>
-          <span className="hidden border-l border-edge pl-3 font-mono text-[9.5px] uppercase tracking-[0.15em] text-muted sm:inline">
-            Exactly-Once Execution
-          </span>
-          <span className="rounded-md border border-edge bg-panel-raised px-2 py-1 font-mono text-sm text-ink">
-            {SYMBOL}
+    <div className="mx-auto flex min-h-screen max-w-[1440px] flex-col gap-4 px-4 py-5 lg:px-6">
+      {/* ── Masthead ─────────────────────────────────────────────── */}
+      <header className="flex flex-wrap items-center justify-between gap-4 border-b-2 border-ink pb-3">
+        <div className="flex items-baseline gap-3">
+          <span className="display text-3xl font-semibold tracking-tight text-ink">AXIOM</span>
+          <span className="hidden font-mono text-[10px] uppercase tracking-[0.2em] text-muted sm:inline">
+            Exactly-Once Execution Engine
           </span>
         </div>
 
-        <div className="flex items-center gap-3">
-          <span className="flex items-center gap-1.5 font-mono text-[11px] text-muted">
-            <span className={`h-2 w-2 rounded-full ${live ? 'bg-buy' : 'bg-sell'}`} />
-            {live ? 'API connected' : 'API offline'}
+        <div className="flex items-center gap-2.5">
+          <span className="flex items-center gap-1.5 rounded-full border border-edge bg-panel px-2.5 py-1 font-mono text-[10.5px] text-ink-soft">
+            <span
+              className={`h-1.5 w-1.5 rounded-full ${live ? 'bg-buy' : 'bg-sell'}`}
+              style={live ? { boxShadow: '0 0 0 3px rgba(14,143,94,0.18)' } : undefined}
+            />
+            {live ? 'Live' : 'Offline'}
           </span>
 
-          <label className="flex items-center gap-1.5 font-mono text-[11px] text-muted">
-            region
+          <label className="flex items-center gap-1.5 rounded-full border border-edge bg-panel px-2.5 py-1 font-mono text-[10.5px] text-muted">
+            <span className="uppercase tracking-wider">Region</span>
             <select
               value={region}
               onChange={(e) => setRegion(e.target.value as RegionCode)}
-              className="rounded-md border border-edge bg-base/60 px-2 py-1 text-xs text-ink outline-none focus:border-accent"
+              className="bg-transparent text-ink outline-none"
             >
               {REGIONS.map((r) => (
-                <option key={r.code} value={r.code} className="bg-base text-ink">
+                <option key={r.code} value={r.code} className="bg-panel text-ink">
                   {r.flag} {r.label}
                 </option>
               ))}
@@ -91,31 +89,52 @@ export function Dashboard() {
 
           <button
             onClick={() => setKnightOpen(true)}
-            className="rounded-lg border border-alarm bg-sell-dim px-3 py-1.5 font-mono text-[11px] font-bold uppercase tracking-wider text-alarm transition-colors hover:bg-alarm hover:text-base"
+            className="rounded-full border border-alarm px-3.5 py-1.5 font-mono text-[10.5px] font-bold uppercase tracking-wider text-alarm transition-colors hover:bg-alarm hover:text-base"
           >
             ⚡ Knight Capital Mode
           </button>
         </div>
       </header>
 
-      {/* Main 3-panel row */}
-      <main className="grid grid-cols-1 gap-3 lg:h-[460px] lg:grid-cols-[320px_minmax(0,1fr)_360px]">
-        <OrderBook book={book} />
-
-        <div className="flex min-h-0 flex-col gap-3">
-          <div className="glass grid grid-cols-3 gap-3 rounded-2xl border border-edge p-3 text-center">
-            <Stat label="Best Bid" value={bestBid ? fmtPrice(bestBid) : '—'} color="text-buy" />
-            <Stat label="Spread" value={book?.spread ? fmtPrice(book.spread) : '—'} color="text-accent" />
-            <Stat label="Best Ask" value={bestAsk ? fmtPrice(bestAsk) : '—'} color="text-sell" />
+      {/* ── Price hero band ──────────────────────────────────────── */}
+      <section className="glass accent-rule flex flex-wrap items-center justify-between gap-6 rounded-xl border px-6 py-5">
+        <div className="flex items-baseline gap-4">
+          <div>
+            <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-muted">Instrument</div>
+            <div className="display text-2xl font-semibold text-ink">{SYMBOL}</div>
           </div>
-          <OrderForm symbol={SYMBOL} region={region} onPlaced={() => void refresh()} />
+          <div className="border-l border-edge pl-4">
+            <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-muted">Last</div>
+            <div className="display text-4xl font-semibold leading-none text-ink tabular">
+              {lastTrade ? fmtPrice(lastTrade) : '—'}
+            </div>
+          </div>
         </div>
 
+        <div className="flex items-stretch gap-8">
+          <HeroStat label="Best Bid" value={bestBid ? fmtPrice(bestBid) : '—'} color="text-buy" />
+          <HeroStat
+            label="Spread"
+            value={book?.spread ? fmtPrice(book.spread) : '—'}
+            color="text-accent"
+          />
+          <HeroStat label="Best Ask" value={bestAsk ? fmtPrice(bestAsk) : '—'} color="text-sell" />
+        </div>
+      </section>
+
+      {/* ── Trading row: book · ticket · tape ────────────────────── */}
+      <main className="grid grid-cols-1 gap-4 lg:h-[500px] lg:grid-cols-[300px_minmax(0,1fr)_340px]">
+        <OrderBook book={book} />
+        <OrderForm symbol={SYMBOL} region={region} onPlaced={() => void refresh()} />
         <TradeTape trades={trades} />
       </main>
 
-      {/* Bottom: ledger + audit log */}
+      {/* ── Ledger + audit ───────────────────────────────────────── */}
       <LedgerView trades={trades} events={events} firehoseAvailable={firehoseAvailable} />
+
+      <footer className="pb-2 pt-1 text-center font-mono text-[10px] uppercase tracking-[0.2em] text-muted">
+        Aurora DSQL · Source of Truth — one match, one settlement, no double-execution
+      </footer>
 
       {knightOpen && (
         <KnightCapitalMode
@@ -129,11 +148,11 @@ export function Dashboard() {
   );
 }
 
-function Stat({ label, value, color }: { label: string; value: string; color: string }) {
+function HeroStat({ label, value, color }: { label: string; value: string; color: string }) {
   return (
-    <div>
-      <div className="font-mono text-[10px] uppercase tracking-wider text-muted">{label}</div>
-      <div className={`tabular font-mono text-lg font-semibold ${color}`}>{value}</div>
+    <div className="text-right">
+      <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-muted">{label}</div>
+      <div className={`display text-2xl font-semibold tabular ${color}`}>{value}</div>
     </div>
   );
 }

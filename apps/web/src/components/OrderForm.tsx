@@ -83,7 +83,7 @@ export function OrderForm({
         onClick={() => setOrderType(t.value)}
         title={t.hint}
         className={`flex-1 rounded py-1.5 text-[11px] font-bold tracking-wide transition ${
-          active ? 'bg-accent text-black' : 'bg-panel-raised text-muted hover:text-gray-200'
+          active ? 'bg-accent text-base' : 'well text-muted hover:text-ink'
         }`}
       >
         {t.label}
@@ -93,13 +93,13 @@ export function OrderForm({
 
   const sideBtn = (s: Side) => {
     const active = side === s;
-    const on = s === 'BUY' ? 'bg-buy text-black' : 'bg-sell text-black';
+    const on = s === 'BUY' ? 'bg-buy text-base' : 'bg-sell text-base';
     return (
       <button
         type="button"
         onClick={() => setSide(s)}
         className={`flex-1 rounded py-2 text-sm font-bold tracking-wide transition ${
-          active ? on : 'bg-panel-raised text-muted hover:text-gray-200'
+          active ? on : 'well text-muted hover:text-ink'
         }`}
       >
         {s}
@@ -132,7 +132,7 @@ export function OrderForm({
             value={price}
             onChange={(e) => setPrice(e.target.value)}
             inputMode="decimal"
-            className="tabular rounded border border-edge bg-base px-2 py-2 text-sm text-gray-100 outline-none focus:border-accent"
+            className="tabular rounded border border-edge well px-2 py-2 text-sm text-ink outline-none focus:border-accent"
           />
         </label>
 
@@ -142,7 +142,7 @@ export function OrderForm({
             value={quantity}
             onChange={(e) => setQuantity(e.target.value)}
             inputMode="decimal"
-            className="tabular rounded border border-edge bg-base px-2 py-2 text-sm text-gray-100 outline-none focus:border-accent"
+            className="tabular rounded border border-edge well px-2 py-2 text-sm text-ink outline-none focus:border-accent"
           />
         </label>
 
@@ -152,20 +152,20 @@ export function OrderForm({
             value={accountId}
             onChange={(e) => setAccountId(e.target.value)}
             placeholder="anonymous"
-            className="rounded border border-edge bg-base px-2 py-2 text-sm text-gray-100 outline-none placeholder:text-muted/50 focus:border-accent"
+            className="rounded border border-edge well px-2 py-2 text-sm text-ink outline-none placeholder:text-muted/60 focus:border-accent"
           />
         </label>
 
         <div className="flex flex-col gap-1 text-[11px] uppercase tracking-wider text-muted">
           Idempotency Key
           <div className="flex items-center gap-2">
-            <code className="flex-1 truncate rounded border border-edge bg-base px-2 py-1.5 text-[11px] normal-case text-muted">
+            <code className="flex-1 truncate rounded border border-edge well px-2 py-1.5 text-[11px] normal-case text-ink-soft">
               {idempotencyKey}
             </code>
             <button
               type="button"
               onClick={() => setIdempotencyKey(newIdempotencyKey())}
-              className="rounded border border-edge px-2 py-1.5 text-[11px] text-muted hover:text-gray-200"
+              className="rounded border border-edge px-2 py-1.5 text-[11px] text-muted hover:text-ink"
               title="Regenerate key"
             >
               ↻
@@ -176,7 +176,7 @@ export function OrderForm({
         <button
           type="submit"
           disabled={busy}
-          className={`rounded py-2.5 text-sm font-bold tracking-wide text-black transition disabled:opacity-50 ${
+          className={`rounded py-2.5 text-sm font-bold tracking-wide text-base shadow-sm transition disabled:opacity-50 ${
             side === 'BUY' ? 'bg-buy hover:brightness-110' : 'bg-sell hover:brightness-110'
           }`}
         >

@@ -12,12 +12,12 @@ export function Panel({
   className?: string;
 }) {
   return (
-    <section className={`glass flex min-h-0 flex-col rounded-2xl border border-edge ${className}`}>
-      <header className="flex items-center justify-between border-b border-edge px-4 py-2.5">
-        <h2 className="font-mono text-[11px] font-semibold uppercase tracking-[0.2em] text-muted">
+    <section className={`glass flex min-h-0 flex-col rounded-xl border ${className}`}>
+      <header className="flex items-center justify-between gap-2 border-b border-edge px-4 py-2.5">
+        <h2 className="font-mono text-[10.5px] font-semibold uppercase tracking-[0.22em] text-ink-soft">
           {title}
         </h2>
-        {right}
+        <div className="font-mono text-[10px] text-muted">{right}</div>
       </header>
       <div className="min-h-0 flex-1 overflow-auto">{children}</div>
     </section>

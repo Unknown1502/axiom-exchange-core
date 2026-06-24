@@ -15,12 +15,12 @@ function DepthRow({
 }) {
   const pct = Math.min(100, (Number(level.quantity) / maxQty) * 100);
   const priceColor = side === 'ask' ? 'text-sell' : 'text-buy';
-  const barColor = side === 'ask' ? 'bg-sell/10' : 'bg-buy/10';
+  const barColor = side === 'ask' ? 'bg-sell/15' : 'bg-buy/15';
   return (
     <div className="relative grid grid-cols-[1fr_1fr_2.5rem] items-center px-3 py-[3px] text-xs tabular">
       <div className={`absolute inset-y-0 right-0 ${barColor}`} style={{ width: `${pct}%` }} />
       <span className={`relative z-10 font-medium ${priceColor}`}>{fmtPrice(level.price)}</span>
-      <span className="relative z-10 text-right text-gray-300">{fmtQty(level.quantity)}</span>
+      <span className="relative z-10 text-right text-ink">{fmtQty(level.quantity)}</span>
       <span className="relative z-10 text-right text-[10px] text-muted">{level.orderCount}</span>
     </div>
   );

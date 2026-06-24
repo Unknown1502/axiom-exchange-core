@@ -19,11 +19,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         />
       </head>
       <body className="relative min-h-screen overflow-x-hidden">
-        {/* Drifting aurora atmosphere — fixed behind all content. */}
+        {/* Faint warm atmosphere — barely-there amber/sage washes that keep the
+            paper background from reading flat, without muddying the light theme. */}
         <div className="pointer-events-none fixed inset-[-12%] z-0">
-          <div className="animate-drift1 absolute left-[-2%] top-[-4%] h-[680px] w-[680px] rounded-full opacity-50 blur-[80px] [background:radial-gradient(circle,#2B3A7A,transparent_62%)]" />
-          <div className="animate-drift2 absolute right-[-6%] top-[6%] h-[640px] w-[640px] rounded-full opacity-[0.46] blur-[84px] [background:radial-gradient(circle,#3C2568,transparent_62%)]" />
-          <div className="animate-drift3 absolute bottom-[-16%] left-[34%] h-[720px] w-[720px] rounded-full opacity-40 blur-[88px] [background:radial-gradient(circle,#11463B,transparent_62%)]" />
+          <div className="animate-drift1 absolute left-[-2%] top-[-4%] h-[680px] w-[680px] rounded-full opacity-[0.18] blur-[90px] [background:radial-gradient(circle,#E6C892,transparent_64%)]" />
+          <div className="animate-drift2 absolute right-[-6%] top-[6%] h-[640px] w-[640px] rounded-full opacity-[0.12] blur-[94px] [background:radial-gradient(circle,#9FB89A,transparent_64%)]" />
+          <div className="animate-drift3 absolute bottom-[-16%] left-[34%] h-[720px] w-[720px] rounded-full opacity-[0.10] blur-[96px] [background:radial-gradient(circle,#D8A8A2,transparent_64%)]" />
         </div>
         <div className="relative z-10">{children}</div>
       </body>

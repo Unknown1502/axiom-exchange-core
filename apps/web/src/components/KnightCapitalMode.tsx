@@ -48,8 +48,8 @@ export function KnightCapitalMode({
   const blocked = statuses.filter((s) => s === 409).length;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm">
-      <div className="animate-alarmBorder flex max-h-[92vh] w-full max-w-5xl flex-col overflow-hidden rounded-2xl border-2 bg-[#0c0d18]">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-ink/40 p-4 backdrop-blur-sm">
+      <div className="animate-alarmBorder flex max-h-[92vh] w-full max-w-5xl flex-col overflow-hidden rounded-2xl border-2 bg-panel shadow-2xl">
         <header className="flex items-center justify-between border-b border-edge bg-sell-dim px-5 py-3">
           <div>
             <h2 className="text-lg font-bold text-alarm">🚨 KNIGHT CAPITAL MODE</h2>
@@ -59,7 +59,7 @@ export function KnightCapitalMode({
           </div>
           <button
             onClick={onClose}
-            className="rounded border border-edge px-3 py-1 text-sm text-muted hover:text-gray-100"
+            className="rounded border border-edge px-3 py-1 text-sm text-muted hover:text-ink"
           >
             ✕ Close
           </button>
@@ -74,9 +74,9 @@ export function KnightCapitalMode({
                 Simulated · illustrative
               </span>
             </div>
-            <div className="mb-3 max-h-48 overflow-auto rounded border border-edge bg-base p-2 text-xs tabular">
+            <div className="mb-3 max-h-48 overflow-auto rounded border border-edge well p-2 text-xs tabular">
               {Array.from({ length: BURST }, (_u, i) => (
-                <div key={i} className="flex justify-between px-1 py-[2px] text-gray-400">
+                <div key={i} className="flex justify-between px-1 py-[2px] text-muted">
                   <span>Attempt {String(i + 1).padStart(2, '0')}</span>
                   <span className="text-sell">EXECUTED ✅</span>
                 </div>
@@ -106,13 +106,13 @@ export function KnightCapitalMode({
                 Actual · live API
               </span>
             </div>
-            <div className="mb-3 max-h-48 overflow-auto rounded border border-edge bg-base p-2 text-xs tabular">
+            <div className="mb-3 max-h-48 overflow-auto rounded border border-edge well p-2 text-xs tabular">
               {phase === 'idle' && <p className="px-1 py-2 text-muted">Press FIRE to run the burst.</p>}
               {phase === 'firing' && <p className="px-1 py-2 text-warn">Firing {BURST} duplicates…</p>}
               {phase === 'done' &&
                 statuses.map((s, i) => (
                   <div key={i} className="flex justify-between px-1 py-[2px]">
-                    <span className="text-gray-400">Attempt {String(i + 1).padStart(2, '0')}</span>
+                    <span className="text-muted">Attempt {String(i + 1).padStart(2, '0')}</span>
                     {s === 201 ? (
                       <span className="text-buy">EXECUTED ✅</span>
                     ) : s === 409 ? (
