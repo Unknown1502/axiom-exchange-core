@@ -95,6 +95,14 @@ run inside [`withOccRetry`](../../packages/database/src/occ.ts):
 4. **Walk and fill**: for each resting order, execute `min(incoming_remaining,
    resting_remaining)` at the resting (maker) price; `UPDATE` the resting order;
    `INSERT` a trade. All arithmetic is exact fixed-point (no floats).
+   - **Self-trade prevention** skips any resting order whose `account_id` equals a
+     non-anonymous incoming account, recording the skipped quantity rather than
+     filling it — so an account never trades with itself.
+   - **Time-in-force** governs the remainder (all in this one transaction):
+     `IOC` cancels it, `FOK` pre-checks crossable quantity and writes *zero*
+     trades unless the whole order can fill, `POST_ONLY` is rejected if it would
+     cross at all, and `GTC` rests it. None of this adds a write path — a
+     cross-account conflict still surfaces as the same `40001` and retries.
 5. **UPDATE the incoming order** to its final `remaining_quantity` / status.
 6. **COMMIT.** If any row this transaction touched was changed by a concurrent
    committed transaction, COMMIT raises `40001` and `withOccRetry` re-runs the
@@ -139,3 +147,9 @@ additionally enforced by a database `CHECK` constraint as defense in depth.
 - [`tests/concurrency/duplicate-orders.test.ts`](../../tests/concurrency/duplicate-orders.test.ts)
   — 50 simultaneous submissions of one `idempotency_key`: asserts exactly one
   accepted, 49 rejected as duplicates, one row persisted.
+- [`tests/concurrency/order-types.test.ts`](../../tests/concurrency/order-types.test.ts)
+  — IOC fills-and-cancels (never rests); FOK fills in full or writes zero trades;
+  POST_ONLY is rejected if it would take liquidity; GTC baseline unchanged.
+- [`tests/concurrency/self-trade-prevention.test.ts`](../../tests/concurrency/self-trade-prevention.test.ts)
+  — a non-anonymous account never matches its own resting liquidity, still fills
+  against other accounts, and anonymous flow self-prevents nothing.
