@@ -108,6 +108,8 @@ export async function getOrderById(pool: Pool, orderId: string): Promise<OrderRo
     `SELECT order_id,
             symbol,
             side,
+            order_type,
+            account_id,
             price::text AS price,
             quantity::text AS quantity,
             remaining_quantity::text AS remaining_quantity,

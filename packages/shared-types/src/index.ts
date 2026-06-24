@@ -17,6 +17,20 @@ export * from './decimal.js';
 export const ORDER_SIDES = ['BUY', 'SELL'] as const;
 export type Side = (typeof ORDER_SIDES)[number];
 
+/**
+ * Time-in-force / execution instructions, mirrored by the order_book CHECK.
+ *   GTC       — good-till-cancelled: fill what crosses now, rest the remainder
+ *               (the original, default behavior).
+ *   IOC       — immediate-or-cancel: fill what crosses now, cancel the remainder
+ *               (never rests on the book).
+ *   FOK       — fill-or-kill: fill the ENTIRE quantity immediately or nothing at
+ *               all (no partial fills, no resting).
+ *   POST_ONLY — must add liquidity: reject outright if it would cross (take) any
+ *               resting order, so a maker can never accidentally pay taker terms.
+ */
+export const ORDER_TYPES = ['GTC', 'IOC', 'FOK', 'POST_ONLY'] as const;
+export type OrderType = (typeof ORDER_TYPES)[number];
+
 export const ORDER_STATUSES = ['OPEN', 'PARTIAL', 'FILLED', 'CANCELLED'] as const;
 export type OrderStatus = (typeof ORDER_STATUSES)[number];
 
@@ -45,6 +59,17 @@ export const SubmitOrderInputSchema = z.object({
   quantity: positiveDecimalString,
   region_origin: z.enum(REGIONS),
   /**
+   * Time-in-force. Optional for backward compatibility — omitting it yields a
+   * GTC order, the original behavior, so existing callers are unaffected.
+   */
+  order_type: z.enum(ORDER_TYPES).default('GTC'),
+  /**
+   * The owning account. Optional; defaults to 'anonymous'. Self-trade prevention
+   * only acts when a *non*-anonymous account would match its own resting order,
+   * so anonymous order flow (and every existing test) never self-prevents.
+   */
+  account_id: z.string().min(1).max(128).default('anonymous'),
+  /**
    * The client-supplied dedup token. The database UNIQUE constraint on this
    * column is the literal safeguard against the Knight Capital failure mode:
    * a retried/duplicate submission with the same key cannot be inserted twice.
@@ -52,7 +77,16 @@ export const SubmitOrderInputSchema = z.object({
   idempotency_key: z.string().min(1).max(128),
 });
 
-export type SubmitOrderInput = z.infer<typeof SubmitOrderInputSchema>;
+/**
+ * The *caller-facing* input type. Uses `z.input` so `order_type` and
+ * `account_id` are OPTIONAL to supply (they have schema defaults) — existing
+ * call sites that omit them still type-check. After `.parse()` the values are
+ * always present; use `ParsedSubmitOrderInput` for the post-validation shape.
+ */
+export type SubmitOrderInput = z.input<typeof SubmitOrderInputSchema>;
+
+/** The post-validation shape, with all defaults applied (no optionals). */
+export type ParsedSubmitOrderInput = z.output<typeof SubmitOrderInputSchema>;
 
 // ---------------------------------------------------------------------------
 // Persisted entities (shape returned from Aurora DSQL / Postgres)
@@ -62,6 +96,8 @@ export interface OrderRow {
   order_id: string;
   symbol: string;
   side: Side;
+  order_type: OrderType;
+  account_id: string;
   price: string;
   quantity: string;
   remaining_quantity: string;
@@ -103,15 +139,28 @@ export type SubmitOrderResult =
   | {
       outcome: 'ACCEPTED';
       order_id: string;
+      order_type: OrderType;
       status: OrderStatus;
       filled_quantity: string;
       fills: Fill[];
+      /**
+       * Quantity that went unfilled because self-trade prevention skipped the
+       * caller's own resting liquidity. 0 unless STP actually fired. Surfaced so
+       * callers can distinguish "no liquidity" from "skipped my own orders".
+       */
+      stp_skipped_quantity: string;
       /** OCC transaction attempts used before commit (1 = no contention). */
       attempts: number;
     }
   | {
       outcome: 'REJECTED_DUPLICATE';
       idempotency_key: string;
+      attempts: number;
+    }
+  | {
+      /** A POST_ONLY order that would have crossed (taken) resting liquidity. */
+      outcome: 'REJECTED_POST_ONLY';
+      order_id: string;
       attempts: number;
     };
 

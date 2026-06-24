@@ -152,7 +152,8 @@ packages/
 apps/
   web/               Next.js 15 dashboard + same-origin API proxy (order book, trade tape, ledger, Knight Capital Mode)
 tests/
-  concurrency/       The correctness proofs (50 conflicting orders; 50 duplicate submissions)
+  concurrency/       The correctness proofs: 50 conflicting orders; 50 duplicate
+                     submissions; IOC/FOK/POST_ONLY order types; self-trade prevention
   global-setup.ts    Reuses a reachable Postgres or auto-starts an embedded one (no Docker required)
 scripts/
   provision-aws.ts   Provision the Aurora DSQL cluster + DynamoDB table via the AWS SDK
@@ -161,7 +162,7 @@ scripts/
   seed-demo-data.ts  Seed a clean resting book for the demo
   load-test-intake.ts / verify-knight-capital.ts   Load + Knight Capital proofs
 docs/
-  ARCHITECTURE.md · DEMO.md · SUBMISSION.md         Top-level system, demo, submission docs
+  ARCHITECTURE.md                                   Top-level system architecture
   architecture/      Concurrency model, database design, event flow, ADRs
   operations/        Deployment & operations runbook
 ```
@@ -207,7 +208,7 @@ npm run seed                # optional: resting liquidity for the demo
 
 Then open `http://localhost:3000`. Reproduce the headline numbers with
 `npm run loadtest` (200-order burst) and `npm run verify:knight` (Knight Capital
-Mode, 5/5 runs). The full demo walkthrough is in [docs/DEMO.md](docs/DEMO.md).
+Mode, 5/5 runs).
 
 Deploying to real Aurora DSQL / DynamoDB / Vercel — including the AWS-SDK
 provisioning scripts — is documented in
@@ -215,11 +216,56 @@ provisioning scripts — is documented in
 
 ---
 
+## Future enhancements
+
+AXIOM today is a correct, proven exchange *core*. The path from core to
+production venue is deliberately incremental — each item below builds on the
+existing OCC-everywhere foundation without weakening it:
+
+- **FIX 4.4 / FIXT gateway.** The natural production front door named throughout
+  this README. A FIX session layer in front of the intake API (NewOrderSingle →
+  ExecutionReport) so institutional order flow integrates without REST glue.
+- **Authentication, API keys & rate limiting.** Per-venue API keys, signed
+  requests, and per-key quotas on the intake API — the current build assumes a
+  trusted caller.
+- **Market-data streaming.** A WebSocket/SSE feed for the live book and trade
+  tape (L2 depth + last-trade), replacing dashboard polling and serving external
+  market-data consumers.
+- **More order types.** Stop and iceberg orders, building on the IOC / FOK /
+  POST_ONLY types already delivered (see below) — each still routed through the
+  single OCC matching transaction.
+- **Risk controls.** Cancel-on-disconnect and per-account position limits,
+  extending the self-trade prevention already delivered (see below).
+- **Observability.** Structured metrics (OCC retry rate, match latency p50/p99,
+  firehose lag) exported to CloudWatch/OpenTelemetry, with dashboards.
+- **Three-Region + automated failover drills.** Extend the active-active proof to
+  a third writable Region and script periodic chaos/failover validation.
+- **Settlement & wallet integration.** Wire the trades ledger into custody /
+  balance settlement so a filled trade moves real positions.
+
+These are roadmap, not claims — the verified, working scope is in **Project
+status** below.
+
+### Delivered since the first cut
+
+- **Time-in-force order types — IOC, FOK, POST_ONLY** (default remains GTC).
+  IOC fills what crosses and cancels the rest; FOK fills in full or writes zero
+  trades; POST_ONLY is rejected if it would take liquidity. All run inside the
+  one OCC matching transaction. Proof: [tests/concurrency/order-types.test.ts](tests/concurrency/order-types.test.ts).
+- **Self-trade prevention.** A non-anonymous `account_id` never matches its own
+  resting liquidity — wash trades are structurally prevented in the same
+  transaction that guarantees exactly-once execution. Anonymous flow self-prevents
+  nothing, so the original concurrency proofs are unaffected. Proof:
+  [tests/concurrency/self-trade-prevention.test.ts](tests/concurrency/self-trade-prevention.test.ts).
+
+---
+
 ## Project status
 
 **Verified end-to-end (single-Region):** the matching engine + concurrency proof
 (the load-bearing deliverable — `npm test` passes the 50-conflicting-order and
-50-duplicate-submission proofs), the Fastify intake API, the DynamoDB firehose,
+50-duplicate-submission proofs, plus the IOC/FOK/POST_ONLY order-type proofs and
+the self-trade-prevention proof), the Fastify intake API, the DynamoDB firehose,
 and the Next.js dashboard with Knight Capital Mode. A live Aurora DSQL cluster and
 `order_events` DynamoDB table are provisioned in `us-east-1` (`npm run aws:proof`
 prints their live status).
@@ -245,5 +291,4 @@ Reproduce with the commands in [Multi-Region](#multi-region-one-ledger-across-re
 The clusters were torn down after the run (`teardown:aws:multiregion`), so
 `aws:proof` reflects the single-Region `us-east-1` cluster used for day-to-day dev.
 
-See [docs/architecture/](docs/architecture/) for the design rationale and
-[docs/SUBMISSION.md](docs/SUBMISSION.md) for the submission summary.
+See [docs/architecture/](docs/architecture/) for the design rationale.

@@ -13,7 +13,7 @@ import {
   writeTradeEvent,
   writeRejectedDuplicateEvent,
 } from '@axiom/dynamodb-client';
-import { ORDER_SIDES } from '@axiom/shared-types';
+import { ORDER_SIDES, ORDER_TYPES } from '@axiom/shared-types';
 import { getPool } from '@/server/db';
 import { awsRegionFor, resolveIdempotencyKey, resolveRegion } from '@/server/intake';
 
@@ -28,6 +28,9 @@ const OrderBodySchema = z.object({
   price: z.string().min(1),
   quantity: z.string().min(1),
   region_origin: z.string().optional(),
+  // Optional — default GTC / anonymous (see SubmitOrderInputSchema).
+  order_type: z.enum(ORDER_TYPES).optional(),
+  account_id: z.string().min(1).max(128).optional(),
 });
 
 /** Run a firehose write without blocking or failing the trade path. */
@@ -67,6 +70,8 @@ export async function POST(req: Request): Promise<Response> {
       price: body.price,
       quantity: body.quantity,
       region_origin: region,
+      order_type: body.order_type,
+      account_id: body.account_id,
       idempotency_key: idempotencyKey,
     });
   } catch (err) {
@@ -90,6 +95,14 @@ export async function POST(req: Request): Promise<Response> {
       }),
     );
     return Response.json({ error: 'DUPLICATE_ORDER', idempotencyKey }, { status: 409 });
+  }
+
+  if (result.outcome === 'REJECTED_POST_ONLY') {
+    // POST_ONLY that would have crossed — rejected without taking liquidity.
+    return Response.json(
+      { error: 'POST_ONLY_WOULD_CROSS', order_id: result.order_id },
+      { status: 422 },
+    );
   }
 
   // ACCEPTED — record SUBMITTED, then one MATCHED event per fill.
@@ -126,8 +139,10 @@ export async function POST(req: Request): Promise<Response> {
         order_id: result.order_id,
         symbol: body.symbol,
         side: body.side,
+        order_type: result.order_type,
         status: result.status,
         filled_quantity: result.filled_quantity,
+        stp_skipped_quantity: result.stp_skipped_quantity,
         region_origin: region,
         idempotency_key: idempotencyKey,
       },

@@ -1,6 +1,7 @@
 import type {
   BookSnapshot,
   FirehoseEvent,
+  OrderType,
   RegionCode,
   Side,
   TradeView,
@@ -19,6 +20,10 @@ export interface PlaceOrderInput {
   quantity: string;
   region: RegionCode;
   idempotencyKey: string;
+  /** Time-in-force; omitted/GTC keeps the original resting behavior. */
+  orderType?: OrderType;
+  /** Owning account; blank/omitted means anonymous (no self-trade prevention). */
+  accountId?: string;
 }
 
 export interface PlaceOrderResult {
@@ -40,6 +45,9 @@ export async function placeOrder(input: PlaceOrderInput): Promise<PlaceOrderResu
       side: input.side,
       price: input.price,
       quantity: input.quantity,
+      // Only send when set so the server applies its defaults (GTC / anonymous).
+      ...(input.orderType && input.orderType !== 'GTC' ? { order_type: input.orderType } : {}),
+      ...(input.accountId && input.accountId.trim() ? { account_id: input.accountId.trim() } : {}),
     }),
   });
   const body: unknown = await res.json().catch(() => ({}));

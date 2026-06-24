@@ -8,7 +8,7 @@
 
 import { createPool, type Pool } from '@axiom/database';
 import { submitOrder } from '@axiom/matching-engine';
-import type { Region, Side, SubmitOrderResult } from '@axiom/shared-types';
+import type { OrderType, Region, Side, SubmitOrderResult } from '@axiom/shared-types';
 
 export const TEST_SYMBOL = 'BTC-USD';
 
@@ -31,6 +31,10 @@ interface OrderSpec {
   quantity: string;
   idempotencyKey: string;
   region?: Region;
+  /** Time-in-force; omitted = GTC (the original behavior). */
+  orderType?: OrderType;
+  /** Owning account; omitted = anonymous (no self-trade prevention). */
+  accountId?: string;
 }
 
 /** Submit a single order through the engine. */
@@ -41,6 +45,8 @@ export function placeOrder(pool: Pool, spec: OrderSpec): Promise<SubmitOrderResu
     price: spec.price,
     quantity: spec.quantity,
     region_origin: spec.region ?? 'us',
+    order_type: spec.orderType,
+    account_id: spec.accountId,
     idempotency_key: spec.idempotencyKey,
   });
 }
@@ -106,4 +112,27 @@ export async function statusBreakdown(pool: Pool, side: Side): Promise<StatusBre
     [side],
   );
   return rows.map((r) => ({ status: r.status, count: Number(r.count) }));
+}
+
+/** Total quantity actually resting on the book (OPEN/PARTIAL with remainder). */
+export async function restingBookQuantity(pool: Pool): Promise<string> {
+  const { rows } = await pool.query<{ total: string }>(
+    `SELECT COALESCE(SUM(remaining_quantity), 0)::text AS total
+       FROM order_book
+      WHERE status IN ('OPEN', 'PARTIAL') AND remaining_quantity > 0`,
+  );
+  return rows[0]?.total ?? '0';
+}
+
+/** Fetch a single order's status + remaining for assertions. */
+export async function orderState(
+  pool: Pool,
+  orderId: string,
+): Promise<{ status: string; remaining: string } | null> {
+  const { rows } = await pool.query<{ status: string; remaining: string }>(
+    `SELECT status, remaining_quantity::text AS remaining
+       FROM order_book WHERE order_id = $1`,
+    [orderId],
+  );
+  return rows[0] ?? null;
 }

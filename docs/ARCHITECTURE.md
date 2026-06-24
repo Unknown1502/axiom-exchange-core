@@ -6,25 +6,37 @@ ledger of truth, even under a burst of duplicate or retried orders.
 
 ## System diagram
 
+> A rendered, submission-ready version of this diagram lives at
+> [architecture-diagram.svg](architecture-diagram.svg) /
+> [`.png`](architecture-diagram.png) (regenerate with `npm run diagram`).
+
 ```mermaid
 flowchart TD
-  UI["Order Entry UI<br/>(Next.js dashboard)"]
-  subgraph Vercel["Vercel"]
-    UI
-    PROXY["Next.js route handlers<br/>/api/orders · /api/book · /api/trades · /api/events"]
-  end
-  API["Intake API (Fastify)<br/>region tag · idempotency · matching"]
-  ENGINE["Matching Engine<br/>price-time priority · OCC transaction"]
-  subgraph AWS["AWS"]
-    DSQL[("Aurora DSQL<br/>order_book + trades<br/>source of truth")]
-    DDB[("DynamoDB<br/>order_events firehose")]
+  subgraph Client["CLIENT"]
+    UI["Order Entry UI · Next.js 15<br/>live book · trade tape · ledger · Knight Capital Mode"]
   end
 
-  UI --> PROXY --> API
-  API -->|"every trade in ONE<br/>OCC-retried transaction"| ENGINE --> DSQL
-  API -->|"fire-and-forget audit"| DDB
-  DSQL -->|book · trades| API --> PROXY --> UI
-  DDB -->|audit log| API
+  subgraph Vercel["EDGE · VERCEL"]
+    PROXY["Next.js /api/* route handlers<br/>same-origin proxy · forwards X-Region + idempotency-key"]
+  end
+
+  subgraph Compute["COMPUTE"]
+    API["Intake API · Fastify 5<br/>region tagging · idempotency dedupe · read projections"]
+    ENGINE["Matching Engine<br/>price-time priority · every trade in ONE OCC transaction"]
+  end
+
+  subgraph AWS["DATA · AWS"]
+    DSQL[("Amazon Aurora DSQL<br/>order_book + trades · source of truth<br/>multi-Region active-active · RPO 0")]
+    DDB[("Amazon DynamoDB<br/>order_events · audit firehose")]
+  end
+
+  UI -->|HTTPS| PROXY -->|request| API
+  API -->|submitOrder| ENGINE
+  ENGINE -->|"BEGIN…COMMIT"| DSQL
+  ENGINE -. "SQLSTATE 40001 → retry on fresh snapshot" .-> ENGINE
+  API -. "writeEvent() · fire-and-forget" .-> DDB
+  DSQL -. "committed read" .-> API
+  API -. JSON .-> PROXY -. JSON .-> UI
 ```
 
 ## Components
@@ -83,6 +95,24 @@ firehose hiccup can never delay or fail a trade.
 Net effect: the book can never be double-filled or driven negative, and a
 retried/duplicate order can never execute twice.
 
+## Multi-Region (active-active, one ledger)
+
+AXIOM runs Single-Region by default and Multi-Region when `MULTIREGION=1`. In
+Multi-Region mode it connects to a two-Region active-active Aurora DSQL cluster —
+peered Regional endpoints in `us-east-1` (labeled `us`) and `us-east-2` (labeled
+`eu`), plus a witness in `us-west-2` for commit quorum — and routes each write by
+its `X-Region` tag to that Region's endpoint. Both endpoints are **one logical,
+strongly-consistent database** (synchronous, zero replication lag, RPO 0), so a
+trade committed via one Region is immediately durable on the other.
+
+The matching engine is **unchanged**: a cross-Region write-write conflict surfaces
+as the same `SQLSTATE 40001` and retries through `withOccRetry` exactly as a
+same-Region conflict does. The only added code is the per-Region connection layer
+([../packages/database/src/multiregion.ts](../packages/database/src/multiregion.ts)),
+which opens one IAM-authenticated pool per endpoint and routes by Region. The `eu`
+label is narrative — `us-east-2` is a real, separate AWS Region, not literally
+Europe.
+
 ## Proven, not asserted
 
 Run locally with `npm test`:
@@ -97,6 +127,20 @@ Run locally with `npm test`:
   events (no dropped writes), p99 ~1.1s.
 - **Knight Capital Mode:** 5/5 runs → exactly 1 execution + 19 DB-rejected
   duplicates each time.
+- **Order types:** IOC fills-and-cancels (never rests); FOK fills in full or
+  writes zero trades; POST_ONLY is rejected if it would take liquidity. All run
+  inside the one OCC transaction. (`tests/concurrency/order-types.test.ts`.)
+- **Self-trade prevention:** a non-anonymous account never matches its own
+  resting liquidity; anonymous flow self-prevents nothing.
+  (`tests/concurrency/self-trade-prevention.test.ts`.)
+
+Verified against a live two-Region cluster (`MULTIREGION=1`):
+
+- **Convergence:** a SELL via `us-east-1` matched by a BUY via `us-east-2` → both
+  endpoints report the *identical* ledger (`trades=1`, `executed_qty=2.00000000`,
+  `open_orders=0`). One logical ledger, zero divergence.
+- **Failover:** trade committed via US, US connection severed → surviving EU
+  endpoint returns the committed trade (RPO 0) and still accepts writes.
 
 ## Repository map
 

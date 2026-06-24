@@ -13,7 +13,7 @@ import {
   writeTradeEvent,
   writeRejectedDuplicateEvent,
 } from '@axiom/dynamodb-client';
-import { ORDER_SIDES } from '@axiom/shared-types';
+import { ORDER_SIDES, ORDER_TYPES } from '@axiom/shared-types';
 import { resolveIdempotencyKey } from '../middleware/idempotency.js';
 import { resolveRegion } from '../middleware/region.js';
 import { awsRegionFor } from '../regions.js';
@@ -25,6 +25,9 @@ const OrderBodySchema = z.object({
   price: z.string().min(1),
   quantity: z.string().min(1),
   region_origin: z.string().optional(),
+  // Optional — default GTC / anonymous (see SubmitOrderInputSchema).
+  order_type: z.enum(ORDER_TYPES).optional(),
+  account_id: z.string().min(1).max(128).optional(),
 });
 
 /** Run a firehose write without blocking the trade path; log on failure. */
@@ -57,6 +60,8 @@ export function registerOrderRoutes(app: FastifyInstance, pools: PoolResolver): 
         price: body.price,
         quantity: body.quantity,
         region_origin: region,
+        order_type: body.order_type,
+        account_id: body.account_id,
         idempotency_key: idempotencyKey,
       });
     } catch (err) {
@@ -78,6 +83,15 @@ export function registerOrderRoutes(app: FastifyInstance, pools: PoolResolver): 
         }),
       );
       return reply.code(409).send({ error: 'DUPLICATE_ORDER', idempotencyKey });
+    }
+
+    if (result.outcome === 'REJECTED_POST_ONLY') {
+      // A POST_ONLY order that would have crossed is rejected without taking
+      // liquidity — 422 (semantically valid request, business-rule rejection).
+      return reply.code(422).send({
+        error: 'POST_ONLY_WOULD_CROSS',
+        order_id: result.order_id,
+      });
     }
 
     // ACCEPTED — record SUBMITTED then one MATCHED event per fill.
@@ -115,8 +129,10 @@ export function registerOrderRoutes(app: FastifyInstance, pools: PoolResolver): 
         order_id: result.order_id,
         symbol: body.symbol,
         side: body.side,
+        order_type: result.order_type,
         status: result.status,
         filled_quantity: result.filled_quantity,
+        stp_skipped_quantity: result.stp_skipped_quantity,
         region_origin: region,
         idempotency_key: idempotencyKey,
       },

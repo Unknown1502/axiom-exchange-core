@@ -82,6 +82,11 @@ export function subScaled(a: Scaled, b: Scaled): Scaled {
   return (a - b) as Scaled;
 }
 
+/** Exact addition, preserving the brand. */
+export function addScaled(a: Scaled, b: Scaled): Scaled {
+  return (a + b) as Scaled;
+}
+
 /** True when the value is strictly greater than zero. */
 export function isPositive(value: Scaled): boolean {
   return value > 0n;
