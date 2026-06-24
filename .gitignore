@@ -24,3 +24,7 @@ coverage/
 *.log
 .DS_Store
 Thumbs.db
+
+# Submission docs — kept local, not published to GitHub
+docs/DEMO.md
+docs/SUBMISSION.md

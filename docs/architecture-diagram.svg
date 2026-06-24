@@ -1,144 +1,132 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1180 880" font-family="'Segoe UI', Inter, system-ui, sans-serif">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 940" font-family="'Segoe UI', Inter, system-ui, sans-serif">
   <defs>
-    <marker id="aBlue" markerWidth="9" markerHeight="9" refX="7.5" refY="3" orient="auto" markerUnits="strokeWidth">
-      <path d="M0,0 L7.5,3 L0,6 Z" fill="#5b8cff"/>
+    <marker id="aBlue" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L8,3 L0,6 Z" fill="#2563eb"/>
     </marker>
-    <marker id="aBlueBack" markerWidth="9" markerHeight="9" refX="7.5" refY="3" orient="auto" markerUnits="strokeWidth">
-      <path d="M0,0 L7.5,3 L0,6 Z" fill="#3a6bd6"/>
+    <marker id="aGreen" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L8,3 L0,6 Z" fill="#16a34a"/>
     </marker>
-    <marker id="aRed" markerWidth="9" markerHeight="9" refX="7.5" refY="3" orient="auto" markerUnits="strokeWidth">
-      <path d="M0,0 L7.5,3 L0,6 Z" fill="#ff4d4d"/>
+    <marker id="aRed" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L8,3 L0,6 Z" fill="#dc2626"/>
     </marker>
-    <marker id="aMuted" markerWidth="9" markerHeight="9" refX="7.5" refY="3" orient="auto" markerUnits="strokeWidth">
-      <path d="M0,0 L7.5,3 L0,6 Z" fill="#8a8a9c"/>
+    <marker id="aGray" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L8,3 L0,6 Z" fill="#94a3b8"/>
     </marker>
-    <marker id="aGreen" markerWidth="9" markerHeight="9" refX="7.5" refY="3" orient="auto" markerUnits="strokeWidth">
-      <path d="M0,0 L7.5,3 L0,6 Z" fill="#00c46a"/>
-    </marker>
-    <linearGradient id="dsqlGrad" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#16223a"/><stop offset="1" stop-color="#10131c"/>
-    </linearGradient>
-    <linearGradient id="ddbGrad" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#1a2233"/><stop offset="1" stop-color="#10131c"/>
-    </linearGradient>
   </defs>
 
-  <rect x="0" y="0" width="1180" height="880" fill="#0a0a0f"/>
+  <!-- canvas -->
+  <rect x="0" y="0" width="1200" height="940" fill="#ffffff"/>
 
   <!-- title -->
-  <text x="590" y="44" text-anchor="middle" font-size="27" font-weight="700" fill="#e9eaf0">AXIOM — System Architecture</text>
-  <text x="590" y="70" text-anchor="middle" font-size="13.5" fill="#9a9aae">Distributed exchange core · exactly-once trade execution on Amazon Aurora DSQL + Amazon DynamoDB</text>
+  <text x="600" y="48" text-anchor="middle" font-size="26" font-weight="700" fill="#0f172a">AXIOM — System Architecture</text>
+  <text x="600" y="74" text-anchor="middle" font-size="13" fill="#64748b">Distributed exchange core · exactly-once trade execution on Amazon Aurora DSQL + Amazon DynamoDB</text>
 
-  <!-- ============ LAYER LABELS (left rail) ============ -->
-  <g font-size="11" font-weight="700" fill="#5a5a70" letter-spacing="1">
-    <text x="34" y="150" transform="rotate(-90 34 150)" text-anchor="middle">CLIENT</text>
-    <text x="34" y="300" transform="rotate(-90 34 300)" text-anchor="middle">EDGE · VERCEL</text>
-    <text x="34" y="475" transform="rotate(-90 34 475)" text-anchor="middle">COMPUTE</text>
-    <text x="34" y="710" transform="rotate(-90 34 710)" text-anchor="middle">DATA · AWS</text>
-  </g>
-  <line x1="60" y1="92" x2="60" y2="828" stroke="#1c1c28" stroke-width="1"/>
+  <!-- ============ swimlane backgrounds ============ -->
+  <!-- CLIENT lane -->
+  <rect x="60" y="104" width="1080" height="96" rx="12" fill="#f8fafc" stroke="#e2e8f0"/>
+  <text x="82" y="130" font-size="11" font-weight="700" fill="#94a3b8" letter-spacing="1">CLIENT</text>
+  <!-- EDGE / VERCEL lane -->
+  <rect x="60" y="224" width="1080" height="96" rx="12" fill="#f5f8ff" stroke="#dbe6ff"/>
+  <text x="82" y="250" font-size="11" font-weight="700" fill="#6b8af0" letter-spacing="1">EDGE · VERCEL</text>
+  <!-- COMPUTE lane -->
+  <rect x="60" y="344" width="1080" height="232" rx="12" fill="#f8fafc" stroke="#e2e8f0"/>
+  <text x="82" y="370" font-size="11" font-weight="700" fill="#94a3b8" letter-spacing="1">COMPUTE</text>
+  <!-- DATA / AWS lane -->
+  <rect x="60" y="600" width="1080" height="262" rx="12" fill="#fffaf2" stroke="#ffe2bf"/>
+  <text x="82" y="626" font-size="11" font-weight="700" fill="#d97706" letter-spacing="1">DATA · AWS · us-east-1</text>
 
-  <!-- ============ CLIENT ============ -->
-  <rect x="430" y="100" width="320" height="78" rx="10" fill="#12121c" stroke="#2a2a3a" stroke-width="1.2"/>
-  <text x="590" y="130" text-anchor="middle" font-size="15" font-weight="700" fill="#e9eaf0">Order Entry UI &#160;·&#160; Next.js 15</text>
-  <text x="590" y="151" text-anchor="middle" font-size="10.5" fill="#9a9aae">live order book · trade tape · settlement ledger</text>
-  <text x="590" y="168" text-anchor="middle" font-size="10.5" fill="#ff8a8a" font-weight="600">▶ Knight Capital Mode</text>
+  <!-- ============ CLIENT: Order UI ============ -->
+  <rect x="440" y="120" width="320" height="64" rx="10" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.4"/>
+  <text x="600" y="146" text-anchor="middle" font-size="14" font-weight="700" fill="#0f172a">Order Entry UI · Next.js 15</text>
+  <text x="600" y="166" text-anchor="middle" font-size="10.5" fill="#64748b">live book · trade tape · ledger · ▶ Knight Capital Mode</text>
 
-  <!-- ============ VERCEL ============ -->
-  <rect x="100" y="218" width="980" height="118" rx="12" fill="#0c0e1a" stroke="#5b8cff" stroke-dasharray="6 4" stroke-width="1.4"/>
-  <text x="120" y="240" font-size="12" font-weight="700" fill="#5b8cff" letter-spacing="0.5">▲ VERCEL</text>
+  <!-- ============ EDGE: route handlers ============ -->
+  <rect x="440" y="240" width="320" height="64" rx="10" fill="#ffffff" stroke="#93b0f7" stroke-width="1.4"/>
+  <text x="600" y="266" text-anchor="middle" font-size="14" font-weight="700" fill="#0f172a">Next.js /api/* route handlers</text>
+  <text x="600" y="286" text-anchor="middle" font-size="10.5" fill="#64748b">same-origin proxy · forwards X-Region + idempotency-key</text>
 
-  <rect x="430" y="252" width="320" height="68" rx="9" fill="#12121c" stroke="#2a2a3a"/>
-  <text x="590" y="280" text-anchor="middle" font-size="13.5" font-weight="700" fill="#e9eaf0">Next.js  /api/*  route handlers</text>
-  <text x="590" y="301" text-anchor="middle" font-size="10.5" fill="#9a9aae">same-origin proxy · no CORS · forwards X-Region + idempotency-key</text>
+  <!-- ============ COMPUTE: Intake API ============ -->
+  <rect x="400" y="386" width="400" height="70" rx="10" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.4"/>
+  <text x="600" y="412" text-anchor="middle" font-size="14" font-weight="700" fill="#0f172a">Intake API · Fastify 5</text>
+  <text x="600" y="431" text-anchor="middle" font-size="10.5" fill="#64748b">region tagging · idempotency dedupe · read projections</text>
+  <text x="600" y="447" text-anchor="middle" font-size="10.5" fill="#64748b">POST /orders · GET /book · /trades · /events</text>
 
-  <!-- ============ COMPUTE: Intake API + Matching Engine ============ -->
-  <rect x="370" y="372" width="440" height="86" rx="10" fill="#12121c" stroke="#2a2a3a" stroke-width="1.2"/>
-  <text x="590" y="400" text-anchor="middle" font-size="15" font-weight="700" fill="#e9eaf0">Intake API &#160;·&#160; Fastify 5</text>
-  <text x="590" y="421" text-anchor="middle" font-size="10.5" fill="#9a9aae">region tagging · idempotency-key dedupe · read projections</text>
-  <text x="590" y="440" text-anchor="middle" font-size="10.5" fill="#9a9aae">POST /orders &#160; GET /book &#160; /trades &#160; /events</text>
+  <!-- ============ COMPUTE: Matching Engine ============ -->
+  <rect x="420" y="478" width="360" height="84" rx="10" fill="#ffffff" stroke="#2563eb" stroke-width="1.8"/>
+  <text x="600" y="504" text-anchor="middle" font-size="14" font-weight="700" fill="#0f172a">Matching Engine</text>
+  <text x="600" y="523" text-anchor="middle" font-size="10.5" fill="#64748b">price-time priority · sole writer of the trades ledger</text>
+  <rect x="470" y="534" width="260" height="22" rx="11" fill="#ecfdf3" stroke="#16a34a" stroke-width="1"/>
+  <text x="600" y="549" text-anchor="middle" font-size="10.5" font-weight="700" fill="#15803d">every trade in ONE OCC transaction</text>
 
-  <rect x="410" y="486" width="360" height="92" rx="10" fill="#10131c" stroke="#5b8cff" stroke-width="1.6"/>
-  <text x="590" y="514" text-anchor="middle" font-size="15" font-weight="700" fill="#e9eaf0">Matching Engine</text>
-  <text x="590" y="534" text-anchor="middle" font-size="10.5" fill="#9a9aae">price-time priority · sole writer of the trades ledger</text>
-  <rect x="455" y="548" width="270" height="22" rx="11" fill="#0c2a1c" stroke="#00c46a" stroke-width="1"/>
-  <text x="590" y="563" text-anchor="middle" font-size="11" font-weight="700" fill="#00ff9d">every trade in ONE OCC transaction</text>
+  <!-- ============ DATA: Aurora DSQL ============ -->
+  <rect x="120" y="648" width="430" height="186" rx="10" fill="#ffffff" stroke="#d97706" stroke-width="1.6"/>
+  <circle cx="158" cy="686" r="14" fill="none" stroke="#d97706" stroke-width="1.6"/>
+  <path d="M158 676 a9 4.5 0 0 0 0 19 M158 676 a9 4.5 0 0 1 0 19 M149 686 h18" stroke="#d97706" stroke-width="1.3" fill="none"/>
+  <text x="184" y="682" font-size="14.5" font-weight="700" fill="#0f172a">Amazon Aurora DSQL</text>
+  <text x="184" y="701" font-size="11" fill="#475569">tables: order_book · trades</text>
+  <rect x="140" y="716" width="124" height="20" rx="10" fill="#fff7ed" stroke="#d97706" stroke-width="0.8"/>
+  <text x="202" y="730" text-anchor="middle" font-size="9.5" font-weight="700" fill="#b45309">SOURCE OF TRUTH</text>
+  <text x="140" y="760" font-size="10.5" fill="#15803d" font-weight="600">✓ UNIQUE(idempotency_key) — duplicates can't execute</text>
+  <text x="140" y="779" font-size="10.5" fill="#15803d" font-weight="600">✓ CHECK(quantity ≥ 0) — book can't go negative</text>
+  <text x="140" y="800" font-size="10" fill="#64748b">REPEATABLE READ + OCC · no locks · no FK</text>
+  <text x="140" y="819" font-size="10" fill="#64748b">multi-Region active-active: us-east-1 + us-east-2 · RPO 0</text>
 
-  <!-- ============ DATA: AWS ============ -->
-  <rect x="100" y="612" width="980" height="216" rx="12" fill="#160f06" stroke="#ff9900" stroke-dasharray="6 4" stroke-width="1.4"/>
-  <text x="120" y="634" font-size="12" font-weight="700" fill="#ff9900" letter-spacing="0.5">aws · us-east-1</text>
+  <!-- ============ DATA: DynamoDB ============ -->
+  <rect x="650" y="648" width="430" height="186" rx="10" fill="#ffffff" stroke="#d97706" stroke-width="1.6"/>
+  <path d="M682 678 h20 v20 h-20 z M682 688 h20 M692 678 v20" stroke="#2563eb" stroke-width="1.4" fill="none"/>
+  <text x="716" y="682" font-size="14.5" font-weight="700" fill="#0f172a">Amazon DynamoDB</text>
+  <text x="716" y="701" font-size="11" fill="#475569">table: order_events</text>
+  <rect x="670" y="716" width="124" height="20" rx="10" fill="#eff6ff" stroke="#2563eb" stroke-width="0.8"/>
+  <text x="732" y="730" text-anchor="middle" font-size="9.5" font-weight="700" fill="#1d4ed8">AUDIT FIREHOSE</text>
+  <text x="670" y="760" font-size="10.5" fill="#64748b">append-only event log · PK symbol · SK timestamp#order_id</text>
+  <text x="670" y="779" font-size="10.5" fill="#64748b">absorbs write bursts · no cross-row transaction needed</text>
+  <text x="670" y="800" font-size="10" fill="#94a3b8">fire-and-forget — never on the settlement critical path</text>
 
-  <!-- Aurora DSQL -->
-  <rect x="250" y="652" width="380" height="156" rx="10" fill="url(#dsqlGrad)" stroke="#ff9900" stroke-width="1.6"/>
-  <circle cx="288" cy="688" r="15" fill="none" stroke="#ff9900" stroke-width="1.6"/>
-  <path d="M288 678 a10 5 0 0 0 0 20 M288 678 a10 5 0 0 1 0 20 M278 688 h20" stroke="#ff9900" stroke-width="1.3" fill="none"/>
-  <text x="316" y="682" font-size="15" font-weight="700" fill="#e9eaf0">Amazon Aurora DSQL</text>
-  <text x="316" y="701" font-size="11.5" fill="#cfd2dc">tables: order_book · trades</text>
-  <rect x="270" y="716" width="120" height="20" rx="10" fill="#2a1c06" stroke="#ff9900" stroke-width="0.8"/>
-  <text x="330" y="730" text-anchor="middle" font-size="9.5" font-weight="700" fill="#ffb84d">SOURCE OF TRUTH</text>
-  <text x="270" y="757" font-size="10.5" fill="#00ff9d" font-weight="600">✓ UNIQUE(idempotency_key) — duplicates can't execute</text>
-  <text x="270" y="774" font-size="10.5" fill="#00ff9d" font-weight="600">✓ CHECK(quantity ≥ 0) — book can't go negative</text>
-  <text x="270" y="794" font-size="10" fill="#9a9aae">REPEATABLE READ + optimistic concurrency · no locks · no FK</text>
+  <!-- ============ FLOWS ============ -->
+  <!-- UI <-> routes -->
+  <line x1="585" y1="184" x2="585" y2="238" stroke="#2563eb" stroke-width="2" marker-end="url(#aBlue)"/>
+  <text x="575" y="214" text-anchor="end" font-size="10" fill="#64748b">HTTPS</text>
+  <line x1="615" y1="240" x2="615" y2="186" stroke="#16a34a" stroke-width="1.8" stroke-dasharray="3 3" marker-end="url(#aGreen)"/>
+  <text x="625" y="214" font-size="10" fill="#16a34a">JSON</text>
 
-  <!-- DynamoDB -->
-  <rect x="660" y="652" width="350" height="156" rx="10" fill="url(#ddbGrad)" stroke="#ff9900" stroke-width="1.6"/>
-  <path d="M690 680 h20 v20 h-20 z M690 690 h20 M700 680 v20" stroke="#4d9fff" stroke-width="1.4" fill="none"/>
-  <text x="722" y="682" font-size="15" font-weight="700" fill="#e9eaf0">Amazon DynamoDB</text>
-  <text x="722" y="701" font-size="11.5" fill="#cfd2dc">table: order_events</text>
-  <rect x="680" y="716" width="120" height="20" rx="10" fill="#06212a" stroke="#4d9fff" stroke-width="0.8"/>
-  <text x="740" y="730" text-anchor="middle" font-size="9.5" font-weight="700" fill="#7fc0ff">AUDIT FIREHOSE</text>
-  <text x="680" y="757" font-size="10.5" fill="#9a9aae">append-only event log · PK symbol · SK timestamp#order_id</text>
-  <text x="680" y="774" font-size="10.5" fill="#9a9aae">absorbs write bursts · no cross-row transaction needed</text>
-  <text x="680" y="794" font-size="10" fill="#8a8a9c">fire-and-forget — never on the settlement critical path</text>
-
-  <!-- ============ FLOWS (down = request, up = response) ============ -->
-  <!-- UI -> routes -->
-  <line x1="560" y1="178" x2="560" y2="250" stroke="#5b8cff" stroke-width="2" marker-end="url(#aBlue)"/>
-  <text x="500" y="208" text-anchor="end" font-size="10" fill="#9a9aae">HTTPS</text>
-  <!-- routes -> UI (response) -->
-  <line x1="620" y1="250" x2="620" y2="180" stroke="#3a6bd6" stroke-width="1.6" stroke-dasharray="2 3" marker-end="url(#aBlueBack)"/>
-  <text x="630" y="208" font-size="10" fill="#6a82c0">JSON</text>
-
-  <!-- routes -> intake -->
-  <line x1="560" y1="320" x2="560" y2="370" stroke="#5b8cff" stroke-width="2" marker-end="url(#aBlue)"/>
-  <line x1="620" y1="370" x2="620" y2="322" stroke="#3a6bd6" stroke-width="1.6" stroke-dasharray="2 3" marker-end="url(#aBlueBack)"/>
+  <!-- routes <-> intake -->
+  <line x1="585" y1="304" x2="585" y2="384" stroke="#2563eb" stroke-width="2" marker-end="url(#aBlue)"/>
+  <line x1="615" y1="386" x2="615" y2="306" stroke="#16a34a" stroke-width="1.8" stroke-dasharray="3 3" marker-end="url(#aGreen)"/>
 
   <!-- intake -> engine -->
-  <line x1="590" y1="458" x2="590" y2="484" stroke="#5b8cff" stroke-width="2" marker-end="url(#aBlue)"/>
-  <text x="600" y="476" font-size="10" fill="#9a9aae">submitOrder()</text>
+  <line x1="600" y1="456" x2="600" y2="476" stroke="#2563eb" stroke-width="2" marker-end="url(#aBlue)"/>
+  <text x="610" y="471" font-size="10" fill="#64748b">submitOrder()</text>
 
-  <!-- engine -> DSQL -->
-  <path d="M470 578 C 430 612 425 626 432 650" fill="none" stroke="#5b8cff" stroke-width="2" marker-end="url(#aBlue)"/>
-  <text x="372" y="612" text-anchor="end" font-size="10" fill="#9a9aae">BEGIN…COMMIT</text>
-  <!-- DSQL -> engine (commit ok / read) -->
-  <path d="M500 650 C 520 624 530 610 545 580" fill="none" stroke="#00c46a" stroke-width="1.8" stroke-dasharray="2 3" marker-end="url(#aGreen)"/>
+  <!-- engine -> DSQL (down-left) -->
+  <path d="M470 562 C 360 600 345 622 340 644" fill="none" stroke="#2563eb" stroke-width="2" marker-end="url(#aBlue)"/>
+  <text x="332" y="600" text-anchor="end" font-size="10" fill="#64748b">BEGIN…COMMIT</text>
+  <!-- DSQL -> engine (committed read / ok) -->
+  <path d="M408 644 C 430 620 455 600 520 564" fill="none" stroke="#16a34a" stroke-width="1.8" stroke-dasharray="3 3" marker-end="url(#aGreen)"/>
 
-  <!-- OCC retry self-loop on DSQL/engine -->
-  <path d="M412 700 C 150 680 150 528 408 528" fill="none" stroke="#ff4d4d" stroke-width="2" stroke-dasharray="5 3" marker-end="url(#aRed)"/>
-  <text x="150" y="600" text-anchor="middle" font-size="10.5" font-weight="700" fill="#ff6b6b">SQLSTATE 40001</text>
-  <text x="150" y="615" text-anchor="middle" font-size="10" fill="#ff8a8a">conflict → retry on</text>
-  <text x="150" y="629" text-anchor="middle" font-size="10" fill="#ff8a8a">fresh snapshot</text>
+  <!-- OCC retry self-loop (kept inside COMPUTE lane, no overlap) -->
+  <path d="M780 520 C 870 520 870 478 790 478" fill="none" stroke="#dc2626" stroke-width="2" stroke-dasharray="5 3" marker-end="url(#aRed)"/>
+  <text x="900" y="500" text-anchor="middle" font-size="10.5" font-weight="700" fill="#dc2626">SQLSTATE 40001</text>
+  <text x="900" y="515" text-anchor="middle" font-size="10" fill="#ef4444">conflict → retry on fresh snapshot</text>
 
-  <!-- intake -> DynamoDB firehose (async) -->
-  <path d="M810 415 C 940 470 945 560 885 650" fill="none" stroke="#8a8a9c" stroke-width="2" stroke-dasharray="5 3" marker-end="url(#aMuted)"/>
-  <text x="935" y="520" text-anchor="middle" font-size="10" fill="#9a9aae">writeEvent()</text>
-  <text x="935" y="534" text-anchor="middle" font-size="10" fill="#9a9aae">async · non-blocking</text>
+  <!-- intake -> DynamoDB firehose (down-right, async) -->
+  <path d="M800 432 C 900 480 905 580 865 644" fill="none" stroke="#94a3b8" stroke-width="2" stroke-dasharray="5 3" marker-end="url(#aGray)"/>
+  <text x="940" y="545" text-anchor="middle" font-size="10" fill="#64748b">writeEvent() · async</text>
 
-  <!-- ============ LEGEND (top-right) ============ -->
+  <!-- ============ LEGEND (top-right, inside CLIENT lane) ============ -->
   <g font-size="10.5">
-    <rect x="858" y="100" width="222" height="100" rx="8" fill="#0d0d16" stroke="#22222e"/>
-    <text x="870" y="119" font-size="10" font-weight="700" fill="#7a7a90" letter-spacing="0.5">LEGEND</text>
-    <line x1="872" y1="134" x2="900" y2="134" stroke="#5b8cff" stroke-width="2" marker-end="url(#aBlue)"/>
-    <text x="908" y="138" fill="#b8b8c8">request / write path</text>
-    <line x1="872" y1="154" x2="900" y2="154" stroke="#00c46a" stroke-width="1.8" stroke-dasharray="2 3" marker-end="url(#aGreen)"/>
-    <text x="908" y="158" fill="#b8b8c8">committed read / response</text>
-    <line x1="872" y1="174" x2="900" y2="174" stroke="#ff4d4d" stroke-width="2" stroke-dasharray="5 3" marker-end="url(#aRed)"/>
-    <text x="908" y="178" fill="#b8b8c8">OCC conflict retry (40001)</text>
-    <line x1="872" y1="194" x2="900" y2="194" stroke="#8a8a9c" stroke-width="2" stroke-dasharray="5 3" marker-end="url(#aMuted)"/>
-    <text x="908" y="198" fill="#b8b8c8">audit firehose (fire-and-forget)</text>
+    <rect x="820" y="116" width="300" height="76" rx="8" fill="#ffffff" stroke="#e2e8f0"/>
+    <text x="836" y="134" font-size="10" font-weight="700" fill="#94a3b8" letter-spacing="0.5">LEGEND</text>
+    <line x1="838" y1="150" x2="866" y2="150" stroke="#2563eb" stroke-width="2" marker-end="url(#aBlue)"/>
+    <text x="874" y="154" fill="#475569">request / write path</text>
+    <line x1="1000" y1="150" x2="1028" y2="150" stroke="#16a34a" stroke-width="1.8" stroke-dasharray="3 3" marker-end="url(#aGreen)"/>
+    <text x="1036" y="154" fill="#475569">read / response</text>
+    <line x1="838" y1="174" x2="866" y2="174" stroke="#dc2626" stroke-width="2" stroke-dasharray="5 3" marker-end="url(#aRed)"/>
+    <text x="874" y="178" fill="#475569">OCC retry (40001)</text>
+    <line x1="1000" y1="174" x2="1028" y2="174" stroke="#94a3b8" stroke-width="2" stroke-dasharray="5 3" marker-end="url(#aGray)"/>
+    <text x="1036" y="178" fill="#475569">audit firehose</text>
   </g>
 
   <!-- ============ footnote ============ -->
-  <rect x="290" y="846" width="600" height="24" rx="12" fill="#0c2a1c" stroke="#00c46a" stroke-width="1"/>
-  <text x="590" y="862" text-anchor="middle" font-size="11" font-weight="700" fill="#00ff9d">Proven: 50 concurrent orders → 0 double-fills · 0 negative qty · hundreds of real OCC retries</text>
+  <rect x="300" y="884" width="600" height="28" rx="14" fill="#ecfdf3" stroke="#16a34a" stroke-width="1"/>
+  <text x="600" y="902" text-anchor="middle" font-size="11" font-weight="700" fill="#15803d">Proven: 50 concurrent orders → 0 double-fills · 0 negative qty · hundreds of real OCC retries</text>
 </svg>
