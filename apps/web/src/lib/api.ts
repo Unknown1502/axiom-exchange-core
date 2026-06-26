@@ -109,12 +109,29 @@ export function openMarketDataStream(
 
   const es = new EventSource(`/api/stream/${encodeURIComponent(symbol)}`);
 
-  es.addEventListener('open', () => handlers.onStatus?.(true));
+  // The server CLOSES the stream every ~25s (Vercel-safety) and EventSource then
+  // auto-reconnects — which fires a benign `error`. We must NOT treat that
+  // routine reconnect as "stream down", or the live indicator flickers off on
+  // every cycle. Instead, only declare the stream dead after a real silence
+  // window with no events AND no successful reconnect.
+  let lastActivity = Date.now();
+  const markLive = (): void => {
+    lastActivity = Date.now();
+    handlers.onStatus?.(true);
+  };
+
+  // Watchdog: if nothing has arrived for a while, the feed is genuinely down.
+  const SILENCE_MS = 8000;
+  const watchdog = setInterval(() => {
+    if (Date.now() - lastActivity > SILENCE_MS) handlers.onStatus?.(false);
+  }, 2000);
+
+  es.addEventListener('open', markLive);
 
   es.addEventListener('book', (e) => {
     try {
       handlers.onBook(JSON.parse((e as MessageEvent).data) as BookSnapshot);
-      handlers.onStatus?.(true);
+      markLive();
     } catch {
       /* ignore malformed frame */
     }
@@ -124,13 +141,22 @@ export function openMarketDataStream(
     try {
       const payload = JSON.parse((e as MessageEvent).data) as { trades: TradeView[] };
       handlers.onTrades(payload.trades ?? []);
+      markLive();
     } catch {
       /* ignore malformed frame */
     }
   });
 
-  // EventSource fires 'error' on a dropped connection; it will auto-reconnect.
-  es.addEventListener('error', () => handlers.onStatus?.(false));
+  // 'error' fires both on the routine bounded-stream reconnect AND on a real
+  // outage. Don't flip the indicator here — the watchdog above downgrades to
+  // "not streaming" only after a genuine silence window, so a normal reconnect
+  // never causes a flicker.
+  es.addEventListener('error', () => {
+    /* auto-reconnect handled by EventSource; watchdog tracks real silence */
+  });
 
-  return () => es.close();
+  return () => {
+    clearInterval(watchdog);
+    es.close();
+  };
 }
