@@ -11,6 +11,7 @@ import Fastify from 'fastify';
 import { registerBookRoutes } from './routes/book.js';
 import { registerEventRoutes } from './routes/events.js';
 import { registerOrderRoutes } from './routes/orders.js';
+import { registerStreamRoutes } from './routes/stream.js';
 import { registerTradeRoutes } from './routes/trades.js';
 import { createPoolResolver } from './pools.js';
 
@@ -33,6 +34,7 @@ async function main(): Promise<void> {
   registerOrderRoutes(app, pools);
   registerBookRoutes(app, pools.readPool());
   registerTradeRoutes(app, pools.readPool());
+  registerStreamRoutes(app, pools.readPool());
   registerEventRoutes(app);
 
   const port = Number(process.env.INTAKE_PORT ?? process.env.PORT ?? 3001);

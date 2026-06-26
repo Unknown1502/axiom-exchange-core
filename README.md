@@ -54,7 +54,7 @@ properties directly:
 |---------------|------|
 | **Aurora DSQL** | Order book + settlement ledger. The single source of truth, strongly consistent. |
 | **DynamoDB** | High-throughput order-event firehose / audit log. |
-| **Next.js on Vercel** | Dashboard + same-origin API proxy (`/api/orders`, `/api/book`, `/api/trades`, `/api/events`). |
+| **Next.js on Vercel** | Dashboard + same-origin API proxy (`/api/orders`, `/api/book`, `/api/trades`, `/api/events`) and a live SSE market-data feed (`/api/stream/:symbol`). |
 | **Fastify intake API** | Region tagging, idempotency handling, matching, and read projections for the dashboard. |
 
 AXIOM runs in two modes. **Single-Region** (default; local Postgres or one DSQL
@@ -228,9 +228,6 @@ existing OCC-everywhere foundation without weakening it:
 - **Authentication, API keys & rate limiting.** Per-venue API keys, signed
   requests, and per-key quotas on the intake API — the current build assumes a
   trusted caller.
-- **Market-data streaming.** A WebSocket/SSE feed for the live book and trade
-  tape (L2 depth + last-trade), replacing dashboard polling and serving external
-  market-data consumers.
 - **More order types.** Stop and iceberg orders, building on the IOC / FOK /
   POST_ONLY types already delivered (see below) — each still routed through the
   single OCC matching transaction.
@@ -257,6 +254,13 @@ status** below.
   transaction that guarantees exactly-once execution. Anonymous flow self-prevents
   nothing, so the original concurrency proofs are unaffected. Proof:
   [tests/concurrency/self-trade-prevention.test.ts](tests/concurrency/self-trade-prevention.test.ts).
+- **Live market-data streaming (Server-Sent Events).** A push feed for the L2
+  order book and last-trade tape at `/api/stream/:symbol` — one server-side
+  poller fans out to every consumer, replacing per-client polling. The dashboard
+  consumes it (with automatic polling fallback), and external market-data clients
+  can subscribe to the same feed on the standalone intake API. The stream is
+  bounded so it stays Vercel-serverless-safe; `EventSource` reconnects
+  transparently.
 
 ---
 

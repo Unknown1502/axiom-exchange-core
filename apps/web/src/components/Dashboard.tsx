@@ -1,7 +1,7 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
-import { fetchBook, fetchEvents, fetchTrades } from '@/lib/api';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { fetchBook, fetchEvents, fetchTrades, openMarketDataStream } from '@/lib/api';
 import { REGIONS } from '@/lib/regions';
 import type { BookSnapshot, FirehoseEvent, RegionCode, TradeView } from '@/lib/types';
 import { fmtPrice } from '@/lib/format';
@@ -21,31 +21,64 @@ export function Dashboard() {
   const [firehoseAvailable, setFirehoseAvailable] = useState(true);
   const [knightOpen, setKnightOpen] = useState(false);
   const [live, setLive] = useState(false);
+  // Source of the live book/trade data: the SSE stream when connected, otherwise
+  // polling. Shown in the header so the live feed is visible, not just assumed.
+  const [streaming, setStreaming] = useState(false);
 
-  const refresh = useCallback(async () => {
-    const [b, t, e] = await Promise.allSettled([
-      fetchBook(SYMBOL),
-      fetchTrades(SYMBOL),
-      fetchEvents(SYMBOL),
-    ]);
-    if (b.status === 'fulfilled') {
-      setBook(b.value);
-      setLive(true);
-    } else {
-      setLive(false);
+  // Wall-clock of the last stream payload; lets polling defer to a fresh stream.
+  const lastStreamAtRef = useRef(0);
+
+  // Poll the firehose audit log (not part of the market-data stream), and act as
+  // the fallback for book/trades whenever the SSE stream has gone quiet.
+  const poll = useCallback(async () => {
+    const streamFresh = Date.now() - lastStreamAtRef.current < 3000;
+
+    const tasks: Promise<unknown>[] = [
+      fetchEvents(SYMBOL).then((e) => {
+        setEvents(e.events);
+        setFirehoseAvailable(e.available);
+      }),
+    ];
+
+    // Only poll book/trades when the stream isn't carrying them.
+    if (!streamFresh) {
+      tasks.push(
+        fetchBook(SYMBOL).then((b) => {
+          setBook(b);
+          setLive(true);
+        }),
+        fetchTrades(SYMBOL).then((t) => setTrades(t)),
+      );
     }
-    if (t.status === 'fulfilled') setTrades(t.value);
-    if (e.status === 'fulfilled') {
-      setEvents(e.value.events);
-      setFirehoseAvailable(e.value.available);
-    }
+
+    const results = await Promise.allSettled(tasks);
+    if (!streamFresh && results.some((r) => r.status === 'rejected')) setLive(false);
   }, []);
 
+  // Live market data over SSE (book + trade tape), with automatic reconnection.
   useEffect(() => {
-    void refresh();
-    const id = setInterval(() => void refresh(), 1000);
+    const unsubscribe = openMarketDataStream(SYMBOL, {
+      onBook: (b) => {
+        lastStreamAtRef.current = Date.now();
+        setBook(b);
+        setLive(true);
+        setStreaming(true);
+      },
+      onTrades: (t) => {
+        lastStreamAtRef.current = Date.now();
+        setTrades(t);
+      },
+      onStatus: (ok) => setStreaming(ok),
+    });
+    return () => unsubscribe?.();
+  }, []);
+
+  // Firehose + fallback polling loop.
+  useEffect(() => {
+    void poll();
+    const id = setInterval(() => void poll(), 1000);
     return () => clearInterval(id);
-  }, [refresh]);
+  }, [poll]);
 
   const bestBid = book?.bids[0]?.price;
   const bestAsk = book?.asks[0]?.price;
@@ -66,10 +99,10 @@ export function Dashboard() {
         <div className="flex items-center gap-2.5">
           <span className="flex items-center gap-1.5 rounded-full border border-edge bg-panel px-2.5 py-1 font-mono text-[10.5px] text-ink-soft">
             <span
-              className={`h-1.5 w-1.5 rounded-full ${live ? 'bg-buy' : 'bg-sell'}`}
+              className={`h-1.5 w-1.5 rounded-full ${live ? 'bg-buy' : 'bg-sell'} ${streaming ? 'animate-pulse' : ''}`}
               style={live ? { boxShadow: '0 0 0 3px rgba(14,143,94,0.18)' } : undefined}
             />
-            {live ? 'Live' : 'Offline'}
+            {!live ? 'Offline' : streaming ? 'Streaming · SSE' : 'Live · polling'}
           </span>
 
           <label className="flex items-center gap-1.5 rounded-full border border-edge bg-panel px-2.5 py-1 font-mono text-[10.5px] text-muted">
@@ -125,7 +158,7 @@ export function Dashboard() {
       {/* ── Trading row: book · ticket · tape ────────────────────── */}
       <main className="grid grid-cols-1 gap-4 lg:h-[500px] lg:grid-cols-[300px_minmax(0,1fr)_340px]">
         <OrderBook book={book} />
-        <OrderForm symbol={SYMBOL} region={region} onPlaced={() => void refresh()} />
+        <OrderForm symbol={SYMBOL} region={region} onPlaced={() => void poll()} />
         <TradeTape trades={trades} />
       </main>
 
@@ -141,7 +174,7 @@ export function Dashboard() {
           symbol={SYMBOL}
           region={region}
           onClose={() => setKnightOpen(false)}
-          onActivity={() => void refresh()}
+          onActivity={() => void poll()}
         />
       )}
     </div>

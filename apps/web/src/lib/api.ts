@@ -82,3 +82,55 @@ export function newIdempotencyKey(): string {
   }
   return `key-${Date.now()}-${Math.random().toString(36).slice(2)}`;
 }
+
+/* ─────────────────────────── market-data stream ─────────────────────────── */
+
+export interface MarketStreamHandlers {
+  onBook: (book: BookSnapshot) => void;
+  onTrades: (trades: TradeView[]) => void;
+  /** Called on transport up/down so the UI can show live vs reconnecting. */
+  onStatus?: (live: boolean) => void;
+}
+
+/**
+ * Subscribe to the live market-data feed (SSE) for a symbol. Returns an
+ * unsubscribe function. The browser's EventSource reconnects automatically when
+ * the bounded server stream ends or the network blips, so the feed is continuous
+ * without the caller managing reconnection.
+ *
+ * Returns `null` when EventSource is unavailable (e.g. SSR), letting the caller
+ * fall back to polling.
+ */
+export function openMarketDataStream(
+  symbol: string,
+  handlers: MarketStreamHandlers,
+): (() => void) | null {
+  if (typeof EventSource === 'undefined') return null;
+
+  const es = new EventSource(`/api/stream/${encodeURIComponent(symbol)}`);
+
+  es.addEventListener('open', () => handlers.onStatus?.(true));
+
+  es.addEventListener('book', (e) => {
+    try {
+      handlers.onBook(JSON.parse((e as MessageEvent).data) as BookSnapshot);
+      handlers.onStatus?.(true);
+    } catch {
+      /* ignore malformed frame */
+    }
+  });
+
+  es.addEventListener('trade', (e) => {
+    try {
+      const payload = JSON.parse((e as MessageEvent).data) as { trades: TradeView[] };
+      handlers.onTrades(payload.trades ?? []);
+    } catch {
+      /* ignore malformed frame */
+    }
+  });
+
+  // EventSource fires 'error' on a dropped connection; it will auto-reconnect.
+  es.addEventListener('error', () => handlers.onStatus?.(false));
+
+  return () => es.close();
+}
